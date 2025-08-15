@@ -12,7 +12,7 @@ const octokit = new PaginatedOctokit({ auth: GH_TOKEN });
 async function getOpenPRs() {
     const PR_GRAPHQL = `
 query ($cursor: String) {
- search(type:ISSUE first:100 query:"org:jupyterhub is:pr state:open" after:$cursor){
+ search(type:ISSUE first:10 query:"org:jupyterhub is:pr state:open" after:$cursor){
   nodes {
     ... on PullRequest {
       id,
@@ -23,6 +23,11 @@ query ($cursor: String) {
       additions,
       statusCheckRollup {
         state
+      }
+      participants(first:100) {
+        nodes {
+            login
+        }
       }
       repository {
         id,
@@ -255,6 +260,11 @@ const authorKindEarly = authorKindField.findOption("Early Contributor");
 const authorKindSeasoned = authorKindField.findOption("Seasoned Contributor");
 const changedLinesField = project.findField("Total Changed Lines");
 
+const maintainerEngagementField = project.findField("Maintainer Engagement") as ProjectSingleSelectField;
+const maintainerNone = maintainerEngagementField.findOption("No Maintainer Engagement");
+const maintainerOne = maintainerEngagementField.findOption("Single Maintainer Engagement");
+const maintainerMany = maintainerEngagementField.findOption("Multiple Maintainer Engagement");
+
 const ciStatusField = project.findField("CI Status") as ProjectSingleSelectField;
 const ciStatusSuccess = ciStatusField.findOption("Tests Passing");
 const ciStatusFailure = ciStatusField.findOption("Tests Failing");
@@ -283,11 +293,34 @@ const getAuthorKindStatus = async (pr: any) => {
     }
 }
 
+const getMaintainerEngagement = async (pr: any) => {
+    const collaborators = new Set(await getCollaborators(pr.repository.owner.login, pr.repository.name));
+
+    collaborators.delete(pr.author.login);
+
+    const participants = new Set(pr.participants.nodes.map(i => i['login']));
+
+    const collabParticipants = collaborators.intersection(participants);
+
+    if (collabParticipants.size === 0) {
+        return maintainerNone;
+    } else if (collabParticipants.size === 1) {
+        return maintainerOne;
+    } else {
+        return maintainerMany;
+    }
+
+}
+
 // console.log(await getMergedPRCount("jupyterhub", "yuvipanda"));
 const openPRs = await getOpenPRs();
 for (const pr of openPRs) {
     const itemId = await addContentToProject(project.id, pr.id);
     console.log(pr)
+
+    console.log(await setProjectItemValue(
+        project.id, itemId, maintainerEngagementField, await getMaintainerEngagement(pr)
+    ))
 
     console.log(await setProjectItemValue(
         project.id, itemId, authorKindField, await getAuthorKindStatus(pr)
@@ -310,6 +343,10 @@ for (const pr of openPRs) {
             console.log(await setProjectItemValue(
                 project.id, itemId, ciStatusField, ciStatusFailure
             ));
+        } else {
+            console.log('found unhandled rollup state');
+            console.log(pr.statusCheck.state)
+            console.log(pr.url);
         }
     }
 }
