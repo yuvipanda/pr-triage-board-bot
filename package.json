@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@octokit/core": "^7.0.3",
+    "@octokit/graphql": "^9.0.1",
+    "@octokit/plugin-paginate-graphql": "^6.0.0",
+    "memoize": "^10.1.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node-ts": "^23.6.1",
+    "@tsconfig/node22": "^22.0.2",
+    "@types/node": "^24.2.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
