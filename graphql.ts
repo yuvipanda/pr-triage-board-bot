@@ -21,6 +21,9 @@ query ($cursor: String) {
       lastEditedAt,
       deletions,
       additions,
+      statusCheckRollup {
+        state
+      }
       repository {
         id,
         name,
@@ -57,7 +60,7 @@ const getMergedPRCount = memoize(async (organization: string, username: string) 
     `;
     const resp = await octokit.graphql(query);
     return resp.search.issueCount;
-},{
+}, {
     // By default, all JS memoize functions only memoize on the first arg wtf?
     cacheKey: args => JSON.stringify(args)
 });
@@ -90,12 +93,17 @@ interface ProjectField {
     name: string
 
 }
-interface ProjectSingleSelectFieldOption {
+class ProjectSingleSelectFieldOption {
     id: string
     name: string
+
+    constructor(id: string, name: string) {
+        this.id = id;
+        this.name = name;
+    }
 }
 
-class ProjectSingleSelectField implements ProjectField{
+class ProjectSingleSelectField implements ProjectField {
     id: string
     name: string
     options: ProjectSingleSelectFieldOption[];
@@ -107,7 +115,7 @@ class ProjectSingleSelectField implements ProjectField{
     }
 
     findOption(name: string): ProjectSingleSelectFieldOption {
-        for(const option of this.options) {
+        for (const option of this.options) {
             if (option.name === name) {
                 return option
             }
@@ -120,13 +128,13 @@ class Project {
     id: string;
     fields: ProjectField[];
 
-    constructor(id: string, fields: ProjectField[]){
+    constructor(id: string, fields: ProjectField[]) {
         this.id = id;
         this.fields = fields;
     };
 
     findField(name: string): ProjectField {
-        for(const field of this.fields) {
+        for (const field of this.fields) {
             if (field.name === name) {
                 return field
             }
@@ -136,7 +144,7 @@ class Project {
 
 }
 
-const getProjectInfo = async (organization: string, number: number) : Promise<Project> => {
+const getProjectInfo = async (organization: string, number: number): Promise<Project> => {
     const query = `
     query($organization: String! $number: Int!){
       organization(login: $organization){
@@ -162,12 +170,12 @@ const getProjectInfo = async (organization: string, number: number) : Promise<Pr
       }
     }
     `;
-    const resp = await octokit.graphql(query, {organization: organization, number: number});
+    const resp = await octokit.graphql(query, { organization: organization, number: number });
     const fields = resp.organization.projectV2.fields.nodes.map(i => {
         if (i['options']) {
-            return new ProjectSingleSelectField(i.id, i.name, i.options)
+            return new ProjectSingleSelectField(i.id, i.name, i.options.map(i => new ProjectSingleSelectFieldOption(i.id, i.name)))
         } else {
-            return {id: i.id, name: i.name};
+            return { id: i.id, name: i.name };
         }
     });
     return new Project(
@@ -186,7 +194,7 @@ const addContentToProject = async (projectId: string, contentId: string) => {
     }
   }
     `
-    const resp = await octokit.graphql(query, {projectId: projectId, contentId: contentId})
+    const resp = await octokit.graphql(query, { projectId: projectId, contentId: contentId })
     return resp.addProjectV2ItemById.item.id;
 }
 
@@ -203,9 +211,11 @@ const setProjectItemValue = async (projectId: string, projectItemId: string, fie
     } else if (typeof value === "number") {
         valueDefinition = "$value: Float!";
         valueMutation = "number: $value"
-    } else if (value instanceof ProjectSingleSelectField) {
+    } else if (value instanceof ProjectSingleSelectFieldOption) {
         valueDefinition = "$value: String!";
         valueMutation = "singleSelectOptionId: $value";
+        // FIXME: This seems bad?
+        value = value.id;
     }
     const query = `
       mutation($projectId: ID! $itemId: ID! $fieldId: ID! ${valueDefinition}) {
@@ -226,7 +236,7 @@ const setProjectItemValue = async (projectId: string, projectItemId: string, fie
   }
     `;
 
-    const resp = await octokit.graphql(query, {projectId: projectId, itemId: projectItemId, fieldId: field.id, value: value});
+    const resp = await octokit.graphql(query, { projectId: projectId, itemId: projectItemId, fieldId: field.id, value: value });
     return resp;
 }
 
@@ -245,6 +255,10 @@ const authorKindEarly = authorKindField.findOption("Early Contributor");
 const authorKindSeasoned = authorKindField.findOption("Seasoned Contributor");
 const changedLinesField = project.findField("Total Changed Lines");
 
+const ciStatusField = project.findField("CI Status") as ProjectSingleSelectField;
+const ciStatusSuccess = ciStatusField.findOption("Tests Passing");
+const ciStatusFailure = ciStatusField.findOption("Tests Failing");
+
 const openedAtField = project.findField("Opened At");
 
 const getAuthorKindStatus = async (pr: any) => {
@@ -255,7 +269,7 @@ const getAuthorKindStatus = async (pr: any) => {
 
     const collaborators = await getCollaborators(pr.repository.owner.login, pr.repository.name);
 
-    if(collaborators.includes(pr.author.login)) {
+    if (collaborators.includes(pr.author.login)) {
         return authorKindMaintainer
     }
 
@@ -272,17 +286,30 @@ const getAuthorKindStatus = async (pr: any) => {
 // console.log(await getMergedPRCount("jupyterhub", "yuvipanda"));
 const openPRs = await getOpenPRs();
 for (const pr of openPRs) {
-   const itemId = await addContentToProject(project.id, pr.id);
+    const itemId = await addContentToProject(project.id, pr.id);
+    console.log(pr)
 
-//    console.log(await setProjectItemSingleSelectOption(
-//     project.id, itemId, authorKindField, await getAuthorKindStatus(pr)
-//    ))
+    console.log(await setProjectItemValue(
+        project.id, itemId, authorKindField, await getAuthorKindStatus(pr)
+    ))
 
-//    console.log(await setProjectItemValue(
-//     project.id, itemId, openedAtField, new Date(pr.createdAt)
-//    ))
+    console.log(await setProjectItemValue(
+        project.id, itemId, openedAtField, new Date(pr.createdAt)
+    ))
 
-   console.log(await setProjectItemValue(
-    project.id, itemId, changedLinesField, pr.additions + pr.deletions
-   ))
+    console.log(await setProjectItemValue(
+        project.id, itemId, changedLinesField, pr.additions + pr.deletions
+    ))
+
+    if (pr.statusCheckRollup) {
+        if (pr.statusCheckRollup.state === "SUCCESS") {
+            console.log(await setProjectItemValue(
+                project.id, itemId, ciStatusField, ciStatusSuccess
+            ));
+        } else if (pr.statusCheckRollup.state === "FAILURE") {
+            console.log(await setProjectItemValue(
+                project.id, itemId, ciStatusField, ciStatusFailure
+            ));
+        }
+    }
 }
