@@ -12,6 +12,6 @@
     "typescript": "^5.9.2"
   },
   "scripts": {
-    "start": "swc src/ --copy-files -d dist && node dist/src/main.js"
+    "start": "cd src && swc . --copy-files -d dist && node dist/main.js"
   }
 }
