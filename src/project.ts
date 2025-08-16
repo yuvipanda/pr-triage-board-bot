@@ -76,37 +76,50 @@ export class Project {
         throw "Learn how to error handle this properly? Or express this via types?";
     }
 
-    setItemValue = async (projectItemId: string, fieldName: string, value: Date | string | number) => {
+    setItemValue = async (projectItemId: string, fieldName: string, value: Date | string | number | null) => {
         const field = this.findField(fieldName);
 
-        let valueDefinition;
-        let valueMutation;
-        if (value instanceof Date) {
-            valueDefinition = "$value: Date!"
-            valueMutation = "date: $value"
-        } else if (typeof value === "string") {
-            if (field instanceof SingleSelectField) {
-                valueDefinition = "$value: String!";
-                valueMutation = "singleSelectOptionId: $value";
-                value = field.findOption(value).id;
-            } else {
-                valueDefinition = "$value: String!";
-                valueMutation = "string: $value"
+        // I am creating a query via string interpolation
+        // may i rot in hell
+        let valueDefinition = "";
+        let valueProperty;
+        let mutationName;
+        if (value !== null) {
+            let valueMutation;
+            if (value instanceof Date) {
+                valueDefinition = "$value: Date!"
+                valueMutation = "date: $value"
+            } else if (typeof value === "string") {
+                if (field instanceof SingleSelectField) {
+                    valueDefinition = "$value: String!";
+                    valueMutation = "singleSelectOptionId: $value";
+                    value = field.findOption(value).id;
+                } else {
+                    valueDefinition = "$value: String!";
+                    valueMutation = "string: $value"
+                }
+            } else if (typeof value === "number") {
+                valueDefinition = "$value: Float!";
+                valueMutation = "number: $value"
             }
-        } else if (typeof value === "number") {
-            valueDefinition = "$value: Float!";
-            valueMutation = "number: $value"
+            valueProperty = `
+                value: {
+                    ${valueMutation}
+                }
+            `
+            mutationName = 'updateProjectV2ItemFieldValue';
+        } else {
+            mutationName = 'clearProjectV2ItemFieldValue';
+            valueProperty = '';
         }
         const query = `
       mutation($projectId: ID! $itemId: ID! $fieldId: ID! ${valueDefinition}) {
-    updateProjectV2ItemFieldValue(
+    ${mutationName}(
       input: {
         projectId:$projectId
         itemId:$itemId
         fieldId:$fieldId
-        value: {
-          ${valueMutation}
-        }
+        ${valueProperty}
       }
     ) {
       projectV2Item {

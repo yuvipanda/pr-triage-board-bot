@@ -3,12 +3,17 @@ import { env } from 'node:process';
 import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 import memoize from "memoize";
 import { Project, SingleSelectField, SingleSelectOption, Field } from "./project.js";
-import { getGraphql } from "./utils.js";
+import { getCollaborators, getGraphql, PaginatedOctokit } from "./utils.js";
+import { getAuthorKind } from './fields/authorkind.js';
+import { getOpenedAt } from './fields/openedat.js';
+import { getTotalLinesChanged } from './fields/totallineschanged.js';
+import { getMaintainerEngagement } from './fields/maintainerengagement.js';
+import { getCIStatus } from './fields/cistatus.js';
 
 // FIXME: Make this use `gh auth token` directly if this doesn't exist
 const GH_TOKEN = env.GH_TOKEN;
-const PaginatedOctokit = Octokit.plugin(paginateGraphQL)
-const octokit = new PaginatedOctokit({ auth: GH_TOKEN });
+const PaginatedOctokitConstructor = Octokit.plugin(paginateGraphQL)
+export const octokit = new PaginatedOctokitConstructor({ auth: GH_TOKEN });
 
 async function getOpenPRs() {
     const query = getGraphql("openprs.gql")
@@ -32,93 +37,28 @@ const getMergedPRCount = memoize(async (organization: string, username: string) 
     cacheKey: args => JSON.stringify(args)
 });
 
-const getCollaborators = memoize(async (owner: string, repo: string) => {
-    const query = getGraphql("maintainers.gql");
-    const resp2 = await octokit.graphql.paginate(query, { owner: owner, repo: repo });
-    return resp2.repository.collaborators.nodes.map((i: any) => i.login);
-}, {
-    // By default, all JS memoize functions only memoize on the first arg wtf?
-    cacheKey: args => JSON.stringify(args)
-});
-
-
 const project = await Project.getProjectInfo("jupyterhub", 4, octokit);
 
-const getAuthorKindStatus = async (pr: any) => {
-    const BOTS = ["dependabot", "pre-commit-ci", "jupyterhub-bot"]
-    if (BOTS.includes(pr.author.login)) {
-        return "Bot";
-    }
 
-    const collaborators = await getCollaborators(pr.repository.owner.login, pr.repository.name);
-
-    if (collaborators.includes(pr.author.login)) {
-        return "Maintainer"
-    }
-
-    const prCount = await getMergedPRCount(pr.repository.owner.login, pr.author.login);
-    if (prCount === 1) {
-        return "First Time Contributor";
-    } else if (prCount < 10) {
-        return "Early Contributor";
-    } else {
-        return "Seasoned Contributor";
-    }
-}
-
-const getMaintainerEngagement = async (pr: any) => {
-    const collaborators = new Set(await getCollaborators(pr.repository.owner.login, pr.repository.name));
-
-    collaborators.delete(pr.author.login);
-
-    const participants = new Set(pr.participants.nodes.map(i => i['login']));
-
-    const collabParticipants = collaborators.intersection(participants);
-
-    if (collabParticipants.size === 0) {
-        return "No Maintainer Engagement";
-    } else if (collabParticipants.size === 1) {
-        return "Single Maintainer Engagement";
-    } else {
-        return "Multiple Maintainer Engagement";
-    }
-
+const fields: { [id: string]: (octokit: PaginatedOctokit, pr: any) => Promise<string | Date | number| null> } = {
+    "Author Kind": getAuthorKind,
+    "Opened At": getOpenedAt,
+    "Total Lines Changed": getTotalLinesChanged,
+    "Maintainer Engagement": getMaintainerEngagement,
+    "CI Status": getCIStatus
 }
 
 const openPRs = await getOpenPRs();
+let count = 0;
 for (const pr of openPRs) {
+    count += 1;
     const itemId = await project.addContent(pr.id);
-    console.log(pr)
-
-    console.log(await project.setItemValue(
-        itemId, "Maintainer Engagement", await getMaintainerEngagement(pr)
-    ))
-
-    console.log(await project.setItemValue(
-        itemId, "Author Kind", await getAuthorKindStatus(pr)
-    ))
-
-    console.log(await project.setItemValue(
-        itemId, "Opened At", new Date(pr.createdAt)
-    ))
-
-    console.log(await project.setItemValue(
-        itemId, "Total Changed Lines", pr.additions + pr.deletions
-    ))
-
-    if (pr.statusCheckRollup) {
-        if (pr.statusCheckRollup.state === "SUCCESS") {
-            console.log(await project.setItemValue(
-                itemId, "CI Status", "Tests Passing"
-            ));
-        } else if (pr.statusCheckRollup.state === "FAILURE") {
-            console.log(await project.setItemValue(
-                itemId, "CI Status", "Tests Failing"
-            ));
-        } else {
-            console.log('found unhandled rollup state');
-            console.log(pr.statusCheck.state)
-            console.log(pr.url);
-        }
+    for (const [fieldName, calcFunction] of Object.entries(fields)) {
+        const value = await calcFunction(octokit, pr);
+        console.log(`[${count} / ${openPRs.length}] Setting ${fieldName} to ${value} for ${pr.url}`);
+        await project.setItemValue(
+            itemId, fieldName, value
+        )
     }
+
 }
