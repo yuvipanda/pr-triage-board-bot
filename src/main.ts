@@ -3,55 +3,22 @@ import { env } from 'node:process';
 import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 import memoize from "memoize";
 import { Project, SingleSelectField, SingleSelectOption, Field } from "./project.js";
-import { inherits } from "node:util";
+import { join } from "node:path";
+import fs from "node:fs";
 
 // FIXME: Make this use `gh auth token` directly if this doesn't exist
 const GH_TOKEN = env.GH_TOKEN;
 const PaginatedOctokit = Octokit.plugin(paginateGraphQL)
 const octokit = new PaginatedOctokit({ auth: GH_TOKEN });
 
-async function getOpenPRs() {
-    const PR_GRAPHQL = `
-query ($cursor: String) {
- search(type:ISSUE first:10 query:"org:jupyterhub is:pr state:open" after:$cursor){
-  nodes {
-    ... on PullRequest {
-      id,
-      url,
-      createdAt,
-      lastEditedAt,
-      deletions,
-      additions,
-      statusCheckRollup {
-        state
-      }
-      participants(first:100) {
-        nodes {
-            login
-        }
-      }
-      repository {
-        id,
-        name,
-        owner {
-            login
-        }
-      },
-      author {
-        login
-      },
-      title,
-    }
-  }
-  pageInfo {
-    hasNextPage
-    endCursor
-  }
-  }
-}
-`;
+const getGraphql = memoize((name: string): string => {
+    const path = join(import.meta.dirname, "graphql", name);
+    return fs.readFileSync(path).toString();
+});
 
-    const resp = await octokit.graphql.paginate(PR_GRAPHQL, {})
+async function getOpenPRs() {
+    const query = getGraphql("openprs.gql")
+    const resp = await octokit.graphql.paginate(query, {})
     return resp.search.nodes;
 }
 
@@ -72,22 +39,8 @@ const getMergedPRCount = memoize(async (organization: string, username: string) 
 });
 
 const getCollaborators = memoize(async (owner: string, repo: string) => {
-    const COLLABORATORS = `
-query ($cursor: String $owner: String! $repo: String!) {
-    repository(name:$repo owner:$owner) {
-        collaborators(after:$cursor first:100) {
-            nodes {
-                login
-            }
-            pageInfo {
-                hasNextPage
-                endCursor
-            }
-        }
-    }
-}
-`
-    const resp2 = await octokit.graphql.paginate(COLLABORATORS, { owner: owner, repo: repo });
+    const query = getGraphql("maintainers.gql");
+    const resp2 = await octokit.graphql.paginate(query, { owner: owner, repo: repo });
     return resp2.repository.collaborators.nodes.map((i: any) => i.login);
 }, {
     // By default, all JS memoize functions only memoize on the first arg wtf?
@@ -97,31 +50,7 @@ query ($cursor: String $owner: String! $repo: String!) {
 
 
 const getProjectInfo = async (organization: string, number: number): Promise<Project> => {
-    const query = `
-    query($organization: String! $number: Int!){
-      organization(login: $organization){
-        projectV2(number: $number) {
-            id,
-            fields(first:100) {
-                nodes {
-                    ... on ProjectV2Field {
-                        id,
-                        name
-                    }
-                    ... on ProjectV2SingleSelectField {
-                        id,
-                        name,
-                        options {
-                            id,
-                            name
-                        }
-                    }
-                }
-            }
-        }
-      }
-    }
-    `;
+    const query = getGraphql("project.gql");
     const resp: any = await octokit.graphql(query, { organization: organization, number: number });
     const fields = resp.organization.projectV2.fields.nodes.map(i => {
         if (i['options']) {

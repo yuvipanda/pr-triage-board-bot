@@ -1,0 +1,37 @@
+query ($cursor: String) {
+ search(type:ISSUE first:50 query:"org:jupyterhub is:pr state:open" after:$cursor){
+  nodes {
+    ... on PullRequest {
+      id,
+      url,
+      createdAt,
+      lastEditedAt,
+      deletions,
+      additions,
+      statusCheckRollup {
+        state
+      }
+      participants(first:100) {
+        nodes {
+            login
+        }
+      }
+      repository {
+        id,
+        name,
+        owner {
+            login
+        }
+      },
+      author {
+        login
+      },
+      title,
+    }
+  }
+  pageInfo {
+    hasNextPage
+    endCursor
+  }
+  }
+}

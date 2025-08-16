@@ -6,10 +6,12 @@
     "memoize": "^10.1.0"
   },
   "devDependencies": {
+    "@swc/cli": "^0.7.8",
+    "@swc/core": "^1.13.3",
     "@types/node": "^24.2.1",
     "typescript": "^5.9.2"
   },
   "scripts": {
-    "start": "tsc && node dist/graphql.js"
+    "start": "swc src/ --copy-files -d dist && node dist/src/main.js"
   }
 }
