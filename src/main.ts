@@ -9,6 +9,7 @@ import { getOpenedAt } from './fields/openedat.js';
 import { getTotalLinesChanged } from './fields/totallineschanged.js';
 import { getMaintainerEngagement } from './fields/maintainerengagement.js';
 import { getCIStatus } from './fields/cistatus.js';
+import { getMergeConflicts } from './fields/mergeconflicts.js'
 
 // FIXME: Make this use `gh auth token` directly if this doesn't exist
 const GH_TOKEN = env.GH_TOKEN;
@@ -45,7 +46,8 @@ const fields: { [id: string]: (octokit: PaginatedOctokit, pr: any) => Promise<st
     "Opened At": getOpenedAt,
     "Total Lines Changed": getTotalLinesChanged,
     "Maintainer Engagement": getMaintainerEngagement,
-    "CI Status": getCIStatus
+    "CI Status": getCIStatus,
+    "Merge Conflicts": getMergeConflicts
 }
 
 const openPRs = await getOpenPRs();
