@@ -3,6 +3,7 @@
   "dependencies": {
     "@octokit/core": "^7.0.3",
     "@octokit/plugin-paginate-graphql": "^6.0.0",
+    "commander": "^14.0.0",
     "memoize": "^10.1.0"
   },
   "devDependencies": {

@@ -50,7 +50,7 @@ export class Project {
         this.octokit = octokit;
     };
 
-    static getProjectInfo = async (organization: string, number: number, octokit: Octokit & paginateGraphQLInterface): Promise<Project> => {
+    static getProject = async (organization: string, number: number, octokit: Octokit & paginateGraphQLInterface): Promise<Project> => {
         const query = getGraphql("project.gql");
         const resp: any = await octokit.graphql(query, { organization: organization, number: number });
         const fields = resp.organization.projectV2.fields.nodes.map(i => {
