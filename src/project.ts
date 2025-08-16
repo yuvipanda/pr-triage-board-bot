@@ -1,3 +1,7 @@
+import { Octokit } from "@octokit/core";
+import { paginateGraphQLInterface } from "@octokit/plugin-paginate-graphql";
+import { getGraphql } from "./utils.js";
+
 export interface Field {
     id: string
     name: string
@@ -38,11 +42,30 @@ export class SingleSelectField implements Field {
 export class Project {
     id: string;
     fields: Field[];
+    octokit: Octokit & paginateGraphQLInterface
 
-    constructor(id: string, fields: Field[]) {
+    constructor(id: string, fields: Field[], octokit: Octokit & paginateGraphQLInterface) {
         this.id = id;
         this.fields = fields;
+        this.octokit = octokit;
     };
+
+    static getProjectInfo = async (organization: string, number: number, octokit: Octokit & paginateGraphQLInterface): Promise<Project> => {
+        const query = getGraphql("project.gql");
+        const resp: any = await octokit.graphql(query, { organization: organization, number: number });
+        const fields = resp.organization.projectV2.fields.nodes.map(i => {
+            if (i['options']) {
+                return new SingleSelectField(i.id, i.name, i.options.map(i => new SingleSelectOption(i.id, i.name)))
+            } else {
+                return { id: i.id, name: i.name };
+            }
+        });
+        return new Project(
+            resp.organization.projectV2.id,
+            fields,
+            octokit
+        );
+    }
 
     findField(name: string): Field {
         for (const field of this.fields) {
@@ -51,6 +74,50 @@ export class Project {
             }
         }
         throw "Learn how to error handle this properly? Or express this via types?";
+    }
+
+    setItemValue = async (projectItemId: string, fieldName: string, value: Date | string | number) => {
+        const field = this.findField(fieldName);
+
+        let valueDefinition;
+        let valueMutation;
+        if (value instanceof Date) {
+            valueDefinition = "$value: Date!"
+            valueMutation = "date: $value"
+        } else if (typeof value === "string") {
+            if (field instanceof SingleSelectField) {
+                valueDefinition = "$value: String!";
+                valueMutation = "singleSelectOptionId: $value";
+                value = field.findOption(value).id;
+            } else {
+                valueDefinition = "$value: String!";
+                valueMutation = "string: $value"
+            }
+        } else if (typeof value === "number") {
+            valueDefinition = "$value: Float!";
+            valueMutation = "number: $value"
+        }
+        const query = `
+      mutation($projectId: ID! $itemId: ID! $fieldId: ID! ${valueDefinition}) {
+    updateProjectV2ItemFieldValue(
+      input: {
+        projectId:$projectId
+        itemId:$itemId
+        fieldId:$fieldId
+        value: {
+          ${valueMutation}
+        }
+      }
+    ) {
+      projectV2Item {
+        id
+      }
+    }
+  }
+    `;
+
+        const resp = await this.octokit.graphql(query, { projectId: this.id, itemId: projectItemId, fieldId: field.id, value: value });
+        return resp;
     }
 
 }
