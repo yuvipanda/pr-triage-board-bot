@@ -120,5 +120,19 @@ export class Project {
         return resp;
     }
 
+    addContent = async (contentId: string) => {
+        const query = `
+  mutation ($projectId: ID! $contentId: ID!) {
+    addProjectV2ItemById(input: {projectId:$projectId contentId:$contentId}) {
+      item {
+        id
+      }
+    }
+  }
+    `
+        const resp: any = await this.octokit.graphql(query, { projectId: this.id, contentId: contentId })
+        return resp.addProjectV2ItemById.item.id;
+    }
+
 }
 

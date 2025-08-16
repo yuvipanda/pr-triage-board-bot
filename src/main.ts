@@ -42,45 +42,7 @@ const getCollaborators = memoize(async (owner: string, repo: string) => {
 });
 
 
-
-
-const addContentToProject = async (projectId: string, contentId: string) => {
-    const query = `
-  mutation ($projectId: ID! $contentId: ID!) {
-    addProjectV2ItemById(input: {projectId:$projectId contentId:$contentId}) {
-      item {
-        id
-      }
-    }
-  }
-    `
-    const resp: any = await octokit.graphql(query, { projectId: projectId, contentId: contentId })
-    return resp.addProjectV2ItemById.item.id;
-}
-
-
-
-// console.log(await getCollaborators("jupyterhub", "ltiauthenticator"))
-// console.log(await getCollaborators("jupyterhub", "ltiauthenticator"))
-// console.log(await getCollaborators("jupyterhub", "jupyterhub"))
-// console.log(await getCollaborators("jupyterhub", "jupyterhub"))
-// console.log(await getProjectId("jupyterhub", 4));
 const project = await Project.getProjectInfo("jupyterhub", 4, octokit);
-
-const authorKindField = project.findField("Author Kind") as SingleSelectField;
-const authorKindMaintainer = authorKindField.findOption("Maintainer");
-const authorKindBot = authorKindField.findOption("Bot");
-const authorKindFirst = authorKindField.findOption("First Time Contributor");
-const authorKindEarly = authorKindField.findOption("Early Contributor");
-const authorKindSeasoned = authorKindField.findOption("Seasoned Contributor");
-const changedLinesField = project.findField("Total Changed Lines");
-
-
-const ciStatusField = project.findField("CI Status") as SingleSelectField;
-const ciStatusSuccess = ciStatusField.findOption("Tests Passing");
-const ciStatusFailure = ciStatusField.findOption("Tests Failing");
-
-const openedAtField = project.findField("Opened At");
 
 const getAuthorKindStatus = async (pr: any) => {
     const BOTS = ["dependabot", "pre-commit-ci", "jupyterhub-bot"]
@@ -123,10 +85,9 @@ const getMaintainerEngagement = async (pr: any) => {
 
 }
 
-// console.log(await getMergedPRCount("jupyterhub", "yuvipanda"));
 const openPRs = await getOpenPRs();
 for (const pr of openPRs) {
-    const itemId = await addContentToProject(project.id, pr.id);
+    const itemId = await project.addContent(pr.id);
     console.log(pr)
 
     console.log(await project.setItemValue(
