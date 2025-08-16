@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/core";
 import { paginateGraphQLInterface } from "@octokit/plugin-paginate-graphql";
 import { getGraphql } from "./utils.js";
+import memoize from "memoize";
 
 export interface Field {
     id: string
@@ -29,14 +30,14 @@ export class SingleSelectField implements Field {
         this.options = options;
     }
 
-    findOption(name: string): SingleSelectOption {
+    findOption = memoize((name: string): SingleSelectOption => {
         for (const option of this.options) {
             if (option.name === name) {
                 return option
             }
         }
         throw "Learn how to error handle this properly? Or express this via types?";
-    }
+    })
 }
 
 export class Project {
@@ -67,14 +68,14 @@ export class Project {
         );
     }
 
-    findField(name: string): Field {
+    findField = memoize((name: string): Field => {
         for (const field of this.fields) {
             if (field.name === name) {
                 return field
             }
         }
         throw "Learn how to error handle this properly? Or express this via types?";
-    }
+    });
 
     setItemValue = async (projectItemId: string, fieldName: string, value: Date | string | number | null) => {
         const field = this.findField(fieldName);
