@@ -22,7 +22,7 @@ jobs:
     - run: npm run build
     - name: Setup GitHub App Private Key
       run: |
-        echo "${GH_APP_PRIVATE_KEY}"" > private-key.pem
+        echo "${GH_APP_PRIVATE_KEY}" > private-key.pem
         wc -l private-key.pem
         md5sum private-key.pem
       env:
