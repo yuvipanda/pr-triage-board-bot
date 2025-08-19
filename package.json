@@ -1,6 +1,7 @@
 {
   "type": "module",
   "dependencies": {
+    "@octokit/auth-app": "^8.0.2",
     "@octokit/core": "^7.0.3",
     "@octokit/plugin-paginate-graphql": "^6.0.0",
     "commander": "^14.0.0",

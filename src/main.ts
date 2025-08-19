@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/core";
-import { env } from 'node:process';
+import { createAppAuth } from "@octokit/auth-app";
 import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 import { Project } from "./project.js";
 import { getGraphql, PaginatedOctokit } from "./utils.js";
@@ -18,12 +18,19 @@ async function getOpenPRs(octokit: PaginatedOctokit) {
     return resp.search.nodes;
 }
 
-async function main(organization: string, projectNumber: number) {
-    // FIXME: Make this use `gh auth token` directly if this doesn't exist
-    const GH_TOKEN = env.GH_TOKEN;
+function makeOctokit(appId: number, installationId: number, keyPath: string) {
     const PaginatedOctokitConstructor = Octokit.plugin(paginateGraphQL)
-    const octokit = new PaginatedOctokitConstructor({ auth: GH_TOKEN });
+    return new PaginatedOctokitConstructor({
+        authStrategy: createAppAuth,
+        auth: {
+            appId: appId,
+            installationId: installationId,
+            privateKey: fs.readFileSync(keyPath).toString()
+        }
+    });
+}
 
+async function main(organization: string, projectNumber: number, octokit: PaginatedOctokit) {
     const project = await Project.getProject(organization, projectNumber, octokit);
 
     const fields: { [id: string]: (octokit: PaginatedOctokit, pr: any) => Promise<string | Date | number| null> } = {
@@ -52,8 +59,19 @@ async function main(organization: string, projectNumber: number) {
 }
 
 
-program.argument("<organization>").argument("<projectNumber>").action(async (organization, projectNumber) => {
-    await main(organization, parseInt(projectNumber))
-});
+program
+    .option("--gh-app-id <number>", "GitHub App ID to use for authentication", parseInt)
+    .option("--gh-installation-id <number>", "GitHub App Installation ID to use for authentication", parseInt)
+    .option("--gh-app-pem-file <string>", "Path to .pem file containing private key to use for authentication")
+    .argument("<organization>")
+    .argument("<projectNumber>")
+    .action(async (organization, projectNumber) => {
+        const options = program.opts();
+        await main(organization, parseInt(projectNumber), makeOctokit(
+            options.ghAppId,
+            options.ghInstallationId,
+            options.ghAppPemFile
+        ))
+    });
 
 program.parse();
