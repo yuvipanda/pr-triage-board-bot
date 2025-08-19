@@ -10,6 +10,7 @@ import { getMaintainerEngagement } from './fields/maintainerengagement.js';
 import { getCIStatus } from './fields/cistatus.js';
 import { getMergeConflicts } from './fields/mergeconflicts.js'
 import { getApprovalStatus } from './fields/approvalstatus.js';
+import { getFilesChangedType } from './fields/fileschangedtype.js';
 import { program } from "commander";
 import fs from "node:fs";
 
@@ -17,6 +18,7 @@ import fs from "node:fs";
 async function getOpenPRs(octokit: PaginatedOctokit) {
     const query = getGraphql("openprs.gql")
     const resp = await octokit.graphql.paginate(query, {})
+    // const resp = await octokit.graphql(query, {})
     return resp.search.nodes;
 }
 

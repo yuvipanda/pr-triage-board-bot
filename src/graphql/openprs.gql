@@ -17,6 +17,13 @@ query ($cursor: String) {
             login
         }
       }
+      files(first:100) {
+        nodes {
+            path,
+            additions,
+            deletions
+        }
+      }
       reviews(first:100) {
         nodes {
             authorCanPushToRepository,
