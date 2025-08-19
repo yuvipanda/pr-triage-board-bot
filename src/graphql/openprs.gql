@@ -17,6 +17,13 @@ query ($cursor: String) {
             login
         }
       }
+      reviews(first:100) {
+        nodes {
+            authorCanPushToRepository,
+            isMinimized,
+            state
+        }
+      }
       repository {
         id,
         name,

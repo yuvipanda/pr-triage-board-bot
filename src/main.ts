@@ -9,7 +9,9 @@ import { getTotalLinesChanged } from './fields/totallineschanged.js';
 import { getMaintainerEngagement } from './fields/maintainerengagement.js';
 import { getCIStatus } from './fields/cistatus.js';
 import { getMergeConflicts } from './fields/mergeconflicts.js'
+import { getApprovalStatus } from './fields/approvalstatus.js';
 import { program } from "commander";
+import fs from "node:fs";
 
 
 async function getOpenPRs(octokit: PaginatedOctokit) {
@@ -33,13 +35,14 @@ function makeOctokit(appId: number, installationId: number, keyPath: string) {
 async function main(organization: string, projectNumber: number, octokit: PaginatedOctokit) {
     const project = await Project.getProject(organization, projectNumber, octokit);
 
-    const fields: { [id: string]: (octokit: PaginatedOctokit, pr: any) => Promise<string | Date | number| null> } = {
+    const fields: { [id: string]: (octokit: PaginatedOctokit, pr: any) => Promise<string | Date | number | null> } = {
         "Author Kind": getAuthorKind,
         "Opened At": getOpenedAt,
         "Total Lines Changed": getTotalLinesChanged,
         "Maintainer Engagement": getMaintainerEngagement,
         "CI Status": getCIStatus,
-        "Merge Conflicts": getMergeConflicts
+        "Merge Conflicts": getMergeConflicts,
+        "Approval Status": getApprovalStatus
     }
 
     const openPRs = await getOpenPRs(octokit);
