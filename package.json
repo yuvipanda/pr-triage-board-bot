@@ -19,5 +19,7 @@
     "build": "swc src/ --copy-files --delete-dir-on-start -d dist",
     "build:watch": "swc src/ --copy-files --delete-dir-on-start -d dist --watch"
   },
-  "bin": "src/main.js"
+  "engines": {
+    "node": ">23.0.0"
+  }
 }
