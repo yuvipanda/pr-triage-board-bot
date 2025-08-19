@@ -43,8 +43,8 @@ export const getFilesChangedType = async (octokit: PaginatedOctokit, pr: any) : 
     }
     console.log(otherExtensionsCount);
 
-    // Sort these by value
-    const sortedCounts = typeCounts.entries().toArray().toSorted(([typ, count]) => -count);
+    // Sort these by value, in descending order
+    const sortedCounts = typeCounts.entries().toArray().toSorted(([_, count1], [__, count2]) => count2 - count1);
     if (sortedCounts.length == 0 || sortedCounts[0][1] < otherExtensionsCount) {
         return null;
     } else {
