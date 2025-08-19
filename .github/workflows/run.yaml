@@ -23,8 +23,6 @@ jobs:
     - name: Setup GitHub App Private Key
       run: |
         echo "${GH_APP_PRIVATE_KEY}" > private-key.pem
-        wc -l private-key.pem
-        md5sum private-key.pem
       env:
         GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
     - name: Run bot
