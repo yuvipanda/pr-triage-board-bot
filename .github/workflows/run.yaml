@@ -24,7 +24,7 @@ jobs:
       run: |
         echo ${GH_APP_PRIVATE_KEY} > private-key.pem
       env:
-        GITHUB_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+        GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
     - name: Run bot
       run: |
         node dist/src/main.js --gh-app-id 1793875 --gh-installation-id 81302562 --gh-app-pem-file private-key.pem jupyterhub 4
