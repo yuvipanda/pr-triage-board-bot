@@ -10,9 +10,13 @@
     "@swc/cli": "^0.7.8",
     "@swc/core": "^1.13.3",
     "@types/node": "^24.2.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "chokidar": "^4.0.3"
   },
   "scripts": {
-    "start": "swc src/ --copy-files --delete-dir-on-start -d dist && node dist/src/main.js"
-  }
+    "start": "swc src/ --copy-files --delete-dir-on-start -d dist && node dist/src/main.js",
+    "build": "swc src/ --copy-files --delete-dir-on-start -d dist",
+    "build:watch": "swc src/ --copy-files --delete-dir-on-start -d dist --watch"
+  },
+  "bin": "src/main.js"
 }
