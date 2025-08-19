@@ -18,6 +18,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         cache: 'npm'
+        node-version: 23.x
     - run: npm install
     - run: npm run build
     - name: Setup GitHub App Private Key
