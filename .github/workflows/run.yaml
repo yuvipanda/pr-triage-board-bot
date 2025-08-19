@@ -1,0 +1,29 @@
+name: Run Bot
+
+on:
+  schedule:
+    - cron: '13 * * * *' # Every hour
+  workflow_dispatch: # Allows triggering the workflow manually from the GitHub UI
+  push:
+    branches: [ "main" ]
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup nodejs
+      uses: actions/setup-node@v4
+      with:
+        cache: 'npm'
+    - run: npm run build
+    - name: Setup GitHub App Private Key
+      run: |
+        echo ${GITHUB_APP_PRIVATE_KEY} > private-key.pem
+      env:
+        GITHUB_APP_PRIVATE_KEY: ${{ secrets.GITHUB_APP_PRIVATE_KEY }}
+    - name: Run bot
+      run: |
+        node dist/src/main.js --gh-app-id 1793875 --gh-installation-id 81302562 --gh-app-pem-file private-key.pem jupyterhub 4
