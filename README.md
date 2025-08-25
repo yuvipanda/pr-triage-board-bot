@@ -15,7 +15,7 @@ from 2i2c for context:
 
 ### Create a GitHub App for authentication
 
-1. [Create a GitHub App in your organization](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) (not in your user) with the following details:
+1. [Create a GitHub App in your organization](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) (not in your user) in `Settings > Developer > GitHub Apps` with the following details:
 
    a. Permissions:
       i. "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)
@@ -23,14 +23,13 @@ from 2i2c for context:
    b. Disable webhooks as we will not be using them.
    c. Restricted to being installable just in your organization.
 
-2. Create a private key and save this file.
+2. After creating the app, you are on the app settings page:
+   1. Create a private key and save this file.
+   2. Note the "App ID". We will be using this to authenticate.
+   3. Install the app in your organization (having access to all repos) using the `Install App` sidebar item.
 
-3. Note the "App ID". We will be using this to authenticate.
-
-4. Install the app in your organization.
-
-5. Find the numerical installation id for your organization. You can find
-   this by looking at the URL for the installation settings - it would look
+3. Find the numerical app installation id for your organization. You can find
+   this by looking at the last number in the URL for the installation settings - it would look
    like `https://github.com/organizations/<organization>/settings/installations/<gh-installation-id>`
 
 ### Create the Project Board
@@ -41,7 +40,9 @@ on particular Project Fields being set up for the project with particular
 field options, and this should be managed by the code itself. It doesn't
 yet.
 
-So for now, go to the [JupyterHub project board](https://github.com/orgs/jupyterhub/projects/4/views/9) and [copy it to your organization](https://docs.github.com/en/issues/planning-and-tracking-with-projects/creating-projects/copying-an-existing-project).
+So for now, go to the [JupyterHub project board](https://github.com/orgs/jupyterhub/projects/4/views/9) and ["Make a copy"](https://docs.github.com/en/issues/planning-and-tracking-with-projects/creating-projects/copying-an-existing-project) in your organization.
+
+Note the project id in the url of your copy, which will look something like: `https://github.com/orgs/<organization>/projects/<project-id>/views/1`
 
 ## Run the script
 
