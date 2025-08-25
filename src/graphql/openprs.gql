@@ -1,5 +1,5 @@
-query ($cursor: String) {
- search(type:ISSUE first:50 query:"org:jupyterhub is:pr state:open" after:$cursor){
+query ($cursor: String, $searchQuery: String!) {
+ search(type:ISSUE first:50 query:$searchQuery after:$cursor){
   nodes {
     ... on PullRequest {
       id,

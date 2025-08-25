@@ -15,9 +15,10 @@ import { program } from "commander";
 import fs from "node:fs";
 
 
-async function getOpenPRs(octokit: PaginatedOctokit) {
+async function getOpenPRs(octokit: PaginatedOctokit, organization: string) {
     const query = getGraphql("openprs.gql")
-    const resp = await octokit.graphql.paginate(query, {})
+    const searchQuery = `org:${organization} is:pr state:open`
+    const resp = await octokit.graphql.paginate(query, {searchQuery})
     // const resp = await octokit.graphql(query, {})
     return resp.search.nodes;
 }
@@ -47,8 +48,11 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
         "Approval Status": getApprovalStatus
     }
 
-    const openPRs = await getOpenPRs(octokit);
+    const openPRs = await getOpenPRs(octokit, organization);
     let count = 0;
+
+    // Sort PRs by url so our progress logs are easier to follow
+    openPRs.sort((a: any, b: any) => a.url.localeCompare(b.url));
     for (const pr of openPRs) {
         count += 1;
         const itemId = await project.addContent(pr.id);
@@ -59,7 +63,6 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
                 itemId, fieldName, value
             )
         }
-
     }
 }
 
