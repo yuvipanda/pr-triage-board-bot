@@ -1,4 +1,7 @@
 {
+  "name": "pr-triage-board-bot",
+  "version": "0.1.0",
+  "description": "A bot to manage a GitHub Project board for PR triage",
   "type": "module",
   "dependencies": {
     "@octokit/auth-app": "^8.0.2",
