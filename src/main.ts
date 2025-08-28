@@ -20,7 +20,7 @@ async function getOpenPRs(octokit: PaginatedOctokit, organization: string) {
     const searchQuery = `org:${organization} is:pr state:open`
     const resp = await octokit.graphql.paginate(query, {searchQuery})
     // const resp = await octokit.graphql(query, {})
-    return resp.search.nodes;
+    return resp.search.nodes.filter((pr: any) => !pr.repository.isArchived);
 }
 
 function makeOctokit(appId: number, installationId: number, keyPath: string) {

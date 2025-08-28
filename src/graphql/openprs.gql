@@ -34,6 +34,7 @@ query ($cursor: String, $searchQuery: String!) {
       repository {
         id,
         name,
+        isArchived,
         owner {
             login
         }
