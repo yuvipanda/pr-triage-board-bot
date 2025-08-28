@@ -17,10 +17,10 @@ import fs from "node:fs";
 
 async function getOpenPRs(octokit: PaginatedOctokit, organization: string) {
     const query = getGraphql("openprs.gql")
-    const searchQuery = `org:${organization} is:pr state:open`
+    const searchQuery = `org:${organization} is:pr state:open archived:false`
     const resp = await octokit.graphql.paginate(query, {searchQuery})
     // const resp = await octokit.graphql(query, {})
-    return resp.search.nodes.filter((pr: any) => !pr.repository.isArchived);
+    return resp.search.nodes;
 }
 
 function makeOctokit(appId: number, installationId: number, keyPath: string) {
