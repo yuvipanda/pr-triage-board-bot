@@ -1,0 +1,22 @@
+query($organization: String! $number: Int! $cursor: String) {
+    organization(login: $organization) {
+        projectV2(number: $number) {
+            id,
+            items(first: 100, after: $cursor) {
+                nodes {
+                    id,
+                    content {
+                        ... on PullRequest {
+                            id,
+                            url
+                        }
+                    }
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+            }
+        }
+    }
+}
