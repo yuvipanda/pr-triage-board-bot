@@ -54,24 +54,26 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
 
     // Create sets for efficient lookup
     const currentPRIds = new Set(openPRs.map((pr: any) => pr.id));
-    const itemsToDelete: string[] = [];
+    const itemsToDelete: {id: string, url: string}[] = [];
 
     // Find items that are no longer in the current PR query
     for (const item of existingItems) {
         if (item.content && item.content.id && !currentPRIds.has(item.content.id)) {
-            itemsToDelete.push(item.id);
-            console.log(`Marking for deletion: ${item.content.url || 'Unknown URL'}`);
+            itemsToDelete.push({
+                id: item.id,
+                url: item.content.url || 'Unknown URL'
+            });
         }
     }
 
-    // Delete stale items
-    for (const itemId of itemsToDelete) {
-        console.log(`Deleting stale project item: ${itemId}`);
-        await project.deleteItem(itemId);
-    }
+    // Sort items to delete by URL for consistent logging
+    itemsToDelete.sort((a, b) => a.url.localeCompare(b.url));
 
-    if (itemsToDelete.length > 0) {
-        console.log(`Deleted ${itemsToDelete.length} stale items from project`);
+    // Delete stale items
+    for (let i = 0; i < itemsToDelete.length; i++) {
+        const item = itemsToDelete[i];
+        console.log(`[${i + 1} / ${itemsToDelete.length}] Removing ${item.url}`);
+        await project.deleteItem(item.id);
     }
 
     let count = 0;
