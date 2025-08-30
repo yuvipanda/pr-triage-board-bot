@@ -43,12 +43,16 @@ export class SingleSelectField implements Field {
 export class Project {
     id: string;
     fields: Field[];
-    octokit: Octokit & paginateGraphQLInterface
+    octokit: Octokit & paginateGraphQLInterface;
+    organization: string;
+    number: number;
 
-    constructor(id: string, fields: Field[], octokit: Octokit & paginateGraphQLInterface) {
+    constructor(id: string, fields: Field[], octokit: Octokit & paginateGraphQLInterface, organization: string, number: number) {
         this.id = id;
         this.fields = fields;
         this.octokit = octokit;
+        this.organization = organization;
+        this.number = number;
     };
 
     static getProject = async (organization: string, number: number, octokit: Octokit & paginateGraphQLInterface): Promise<Project> => {
@@ -64,7 +68,9 @@ export class Project {
         return new Project(
             resp.organization.projectV2.id,
             fields,
-            octokit
+            octokit,
+            organization,
+            number
         );
     }
 
@@ -146,6 +152,27 @@ export class Project {
     `
         const resp: any = await this.octokit.graphql(query, { projectId: this.id, contentId: contentId })
         return resp.addProjectV2ItemById.item.id;
+    }
+
+    getExistingItems = async () => {
+        const query = getGraphql("projectitems.gql");
+        const resp = await this.octokit.graphql.paginate(query, { 
+            organization: this.organization, 
+            number: this.number 
+        });
+        return resp.organization.projectV2.items.nodes;
+    }
+
+    deleteItem = async (itemId: string) => {
+        const query = `
+  mutation ($projectId: ID! $itemId: ID!) {
+    deleteProjectV2Item(input: {projectId: $projectId itemId: $itemId}) {
+      deletedItemId
+    }
+  }
+    `
+        const resp: any = await this.octokit.graphql(query, { projectId: this.id, itemId: itemId });
+        return resp.deleteProjectV2Item.deletedItemId;
     }
 
 }
