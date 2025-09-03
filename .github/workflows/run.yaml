@@ -21,11 +21,19 @@ jobs:
         node-version: 23.x
     - run: npm install
     - run: npm run build
-    - name: Setup GitHub App Private Key
+    - name: JupyterHub: Setup GitHub App Private Key
       run: |
         echo "${GH_APP_PRIVATE_KEY}" > private-key.pem
       env:
         GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
-    - name: Run bot
+    - name: JupyterHub: Run bot
       run: |
         node dist/src/main.js --gh-app-id 1793875 --gh-installation-id 81302562 --gh-app-pem-file private-key.pem jupyterhub 4
+    - name: JupyterLab: Setup GitHub App Private Key
+      run: |
+        echo "${GH_APP_PRIVATE_KEY}" > private-key.pem
+      env:
+        GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY_JUPYTERLAB }}
+    - name: JupyterLab: Run bot
+      run: |
+        node dist/src/main.js --gh-app-id 1842581 --gh-installation-id 82755492 --gh-app-pem-file private-key.pem jupyterlab 11
