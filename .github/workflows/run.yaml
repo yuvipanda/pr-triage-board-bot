@@ -33,7 +33,7 @@ jobs:
       run: |
         echo "${GH_APP_PRIVATE_KEY}" > private-key.pem
       env:
-        GH_APP_PRIVATE_KEY: ${{ secrets.JLAB_APP_PRIVATE_KEY }}
+        GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY_JUPYTERLAB }}
     - name: JupyterLab: Run bot
       run: |
         node dist/src/main.js --gh-app-id 1842581 --gh-installation-id 82755492 --gh-app-pem-file private-key.pem jupyterlab 11
