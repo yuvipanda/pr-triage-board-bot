@@ -255,16 +255,16 @@ export class Project {
     verifyAndCreateFields = async (): Promise<void> => {
         const existingFieldNames = new Set(this.fields.map(f => f.name));
         
-        for (const fieldSpec of REQUIRED_FIELDS) {
-            if (!existingFieldNames.has(fieldSpec.name)) {
-                console.log(`Missing field detected: ${fieldSpec.name}`);
+        for (const [fieldName, fieldSpec] of Object.entries(REQUIRED_FIELDS)) {
+            if (!existingFieldNames.has(fieldName)) {
+                console.log(`Missing field detected: ${fieldName}`);
                 try {
                     await this.createField(fieldSpec);
                 } catch (error) {
-                    console.warn(`Could not create field ${fieldSpec.name}, continuing...`);
+                    console.warn(`Could not create field ${fieldName}, continuing...`);
                 }
             } else {
-                console.log(`Field already exists: ${fieldSpec.name}`);
+                console.log(`Field already exists: ${fieldName}`);
             }
         }
     }
