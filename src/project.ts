@@ -176,11 +176,11 @@ export class Project {
         return resp.deleteProjectV2Item.deletedItemId;
     }
 
-    createField = async (fieldSpec: FieldSpec): Promise<Field> => {
+    createField = async (fieldName: string, fieldSpec: FieldSpec): Promise<Field> => {
         let mutation = '';
         let variables: any = {
             projectId: this.id,
-            name: fieldSpec.name,
+            name: fieldName,
             dataType: fieldSpec.dataType
         };
 
@@ -247,7 +247,7 @@ export class Project {
             console.log(`Created field: ${field.name} (${fieldSpec.dataType})`);
             return field;
         } catch (error) {
-            console.error(`Failed to create field ${fieldSpec.name}:`, error);
+            console.error(`Failed to create field ${fieldName}:`, error);
             throw error;
         }
     }
@@ -259,7 +259,7 @@ export class Project {
             if (!existingFieldNames.has(fieldName)) {
                 console.log(`Missing field detected: ${fieldName}`);
                 try {
-                    await this.createField(fieldSpec);
+                    await this.createField(fieldName, fieldSpec);
                 } catch (error) {
                     console.warn(`Could not create field ${fieldName}, continuing...`);
                 }

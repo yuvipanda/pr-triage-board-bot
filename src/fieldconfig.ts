@@ -1,7 +1,6 @@
 export type FieldDataType = "TEXT" | "NUMBER" | "DATE" | "SINGLE_SELECT";
 
 export interface FieldSpec {
-    name: string;
     dataType: FieldDataType;
     options?: readonly string[];
 }
@@ -9,7 +8,6 @@ export interface FieldSpec {
 // Define field configurations as a dictionary with const assertions for type inference
 export const REQUIRED_FIELDS = {
     "Author Kind": {
-        name: "Author Kind",
         dataType: "SINGLE_SELECT",
         options: [
             "Bot",
@@ -20,15 +18,12 @@ export const REQUIRED_FIELDS = {
         ]
     },
     "Opened At": {
-        name: "Opened At",
         dataType: "DATE"
     },
     "Total Lines Changed": {
-        name: "Total Lines Changed",
         dataType: "NUMBER"
     },
     "Maintainer Engagement": {
-        name: "Maintainer Engagement",
         dataType: "SINGLE_SELECT",
         options: [
             "No Maintainer Engagement",
@@ -37,7 +32,6 @@ export const REQUIRED_FIELDS = {
         ]
     },
     "CI Status": {
-        name: "CI Status",
         dataType: "SINGLE_SELECT",
         options: [
             "Tests Passing",
@@ -45,7 +39,6 @@ export const REQUIRED_FIELDS = {
         ]
     },
     "Merge Conflicts": {
-        name: "Merge Conflicts",
         dataType: "SINGLE_SELECT",
         options: [
             "Merge Conflicts",
@@ -53,7 +46,6 @@ export const REQUIRED_FIELDS = {
         ]
     },
     "Approval Status": {
-        name: "Approval Status",
         dataType: "SINGLE_SELECT",
         options: [
             "Changes Requested",
