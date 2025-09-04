@@ -38,7 +38,12 @@ function makeOctokit(appId: number, installationId: number, keyPath: string) {
 async function main(organization: string, projectNumber: number, octokit: PaginatedOctokit) {
     const project = await Project.getProject(organization, projectNumber, octokit);
 
-    const fields: { [id: string]: (octokit: PaginatedOctokit, pr: any) => Promise<string | Date | number | null> } = {
+    // Verify and create missing fields
+    console.log("Verifying project fields...");
+    await project.verifyAndCreateFields();
+    console.log("Field verification complete.");
+
+    const fields: { [fieldName: string]: (octokit: PaginatedOctokit, pr: any) => Promise<string | Date | number | null> } = {
         "Author Kind": getAuthorKind,
         "Opened At": getOpenedAt,
         "Total Lines Changed": getTotalLinesChanged,

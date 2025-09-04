@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/core";
 import { PaginatedOctokit, getCollaborators } from "../utils.js";
-
+import { AuthorKindValue } from "../fieldconfig.js";
 import memoize from "memoize";
 
 
@@ -20,7 +20,7 @@ const getMergedPRCount = memoize(async (octokit: Octokit, organization: string, 
     cacheKey: args => JSON.stringify(args)
 });
 
-export const getAuthorKind = async (octokit: PaginatedOctokit, pr: any) => {
+export const getAuthorKind = async (octokit: PaginatedOctokit, pr: any): Promise<AuthorKindValue | null> => {
     const BOTS = ["dependabot", "pre-commit-ci", "jupyterhub-bot"]
     if (BOTS.includes(pr.author.login)) {
         return "Bot";

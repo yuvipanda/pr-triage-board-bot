@@ -1,6 +1,7 @@
 import { PaginatedOctokit } from "../utils.js";
+import { MergeConflictsValue } from "../fieldconfig.js";
 
-export const getMergeConflicts = async (octokit: PaginatedOctokit, pr: any) : Promise<string | null> => {
+export const getMergeConflicts = async (octokit: PaginatedOctokit, pr: any) : Promise<MergeConflictsValue | null> => {
     switch(pr.mergeable) {
         case "CONFLICTING":
             return "Merge Conflicts"
