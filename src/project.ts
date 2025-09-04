@@ -2,6 +2,7 @@ import { Octokit } from "@octokit/core";
 import { paginateGraphQLInterface } from "@octokit/plugin-paginate-graphql";
 import { getGraphql } from "./utils.js";
 import memoize from "memoize";
+import { FieldSpec, FieldDataType, REQUIRED_FIELDS } from "./fieldconfig.js";
 
 export interface Field {
     id: string
@@ -173,6 +174,99 @@ export class Project {
     `
         const resp: any = await this.octokit.graphql(query, { projectId: this.id, itemId: itemId });
         return resp.deleteProjectV2Item.deletedItemId;
+    }
+
+    createField = async (fieldSpec: FieldSpec): Promise<Field> => {
+        let mutation = '';
+        let variables: any = {
+            projectId: this.id,
+            name: fieldSpec.name,
+            dataType: fieldSpec.dataType
+        };
+
+        if (fieldSpec.dataType === "SINGLE_SELECT" && fieldSpec.options) {
+            variables.singleSelectOptions = fieldSpec.options.map(opt => ({ name: opt.name }));
+            mutation = `
+                mutation ($projectId: ID!, $name: String!, $dataType: ProjectV2CustomFieldType!, $singleSelectOptions: [ProjectV2SingleSelectFieldOptionInput!]!) {
+                    createProjectV2Field(input: {
+                        projectId: $projectId,
+                        name: $name,
+                        dataType: $dataType,
+                        singleSelectOptions: $singleSelectOptions
+                    }) {
+                        projectV2Field {
+                            ... on ProjectV2SingleSelectField {
+                                id
+                                name
+                                options {
+                                    id
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+            `;
+        } else {
+            mutation = `
+                mutation ($projectId: ID!, $name: String!, $dataType: ProjectV2CustomFieldType!) {
+                    createProjectV2Field(input: {
+                        projectId: $projectId,
+                        name: $name,
+                        dataType: $dataType
+                    }) {
+                        projectV2Field {
+                            ... on ProjectV2Field {
+                                id
+                                name
+                            }
+                        }
+                    }
+                }
+            `;
+        }
+
+        try {
+            const resp: any = await this.octokit.graphql(mutation, variables);
+            const createdField = resp.createProjectV2Field.projectV2Field;
+            
+            let field: Field;
+            if (fieldSpec.dataType === "SINGLE_SELECT" && createdField.options) {
+                field = new SingleSelectField(
+                    createdField.id, 
+                    createdField.name, 
+                    createdField.options.map(opt => new SingleSelectOption(opt.id, opt.name))
+                );
+            } else {
+                field = { id: createdField.id, name: createdField.name };
+            }
+            
+            // Add to our local fields array
+            this.fields.push(field);
+            
+            console.log(`Created field: ${field.name} (${fieldSpec.dataType})`);
+            return field;
+        } catch (error) {
+            console.error(`Failed to create field ${fieldSpec.name}:`, error);
+            throw error;
+        }
+    }
+
+    verifyAndCreateFields = async (): Promise<void> => {
+        const existingFieldNames = new Set(this.fields.map(f => f.name));
+        
+        for (const fieldSpec of REQUIRED_FIELDS) {
+            if (!existingFieldNames.has(fieldSpec.name)) {
+                console.log(`Missing field detected: ${fieldSpec.name}`);
+                try {
+                    await this.createField(fieldSpec);
+                } catch (error) {
+                    console.warn(`Could not create field ${fieldSpec.name}, continuing...`);
+                }
+            } else {
+                console.log(`Field already exists: ${fieldSpec.name}`);
+            }
+        }
     }
 
 }
