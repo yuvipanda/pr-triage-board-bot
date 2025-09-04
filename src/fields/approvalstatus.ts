@@ -1,6 +1,7 @@
 import { PaginatedOctokit } from "../utils.js";
+import { ApprovalStatusValue } from "../fieldconfig.js";
 
-export const getApprovalStatus = async (octokit: PaginatedOctokit, pr: any) : Promise<string | null> => {
+export const getApprovalStatus = async (octokit: PaginatedOctokit, pr: any) : Promise<ApprovalStatusValue | null> => {
     const maintainerReviews : Array<string> = [];
     if (pr.reviews.nodes) {
         for (const review of pr.reviews.nodes) {

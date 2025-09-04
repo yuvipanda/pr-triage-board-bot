@@ -1,6 +1,7 @@
 import { PaginatedOctokit } from "../utils.js";
+import { CIStatusValue } from "../fieldconfig.js";
 
-export const getCIStatus = async (octokit: PaginatedOctokit, pr: any) : Promise<string | null> => {
+export const getCIStatus = async (octokit: PaginatedOctokit, pr: any) : Promise<CIStatusValue | null> => {
     if (pr.statusCheckRollup) {
         if (pr.statusCheckRollup.state === "SUCCESS") {
             return "Tests Passing"

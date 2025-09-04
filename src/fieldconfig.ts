@@ -1,13 +1,16 @@
 export type FieldDataType = "TEXT" | "NUMBER" | "DATE" | "SINGLE_SELECT";
 
-export interface FieldOptionSpec {
-    name: string;
-}
+// Define the possible values for each field
+export type AuthorKindValue = "Bot" | "Maintainer" | "First Time Contributor" | "Early Contributor" | "Seasoned Contributor";
+export type MaintainerEngagementValue = "No Maintainer Engagement" | "Single Maintainer Engagement" | "Multiple Maintainer Engagement";
+export type CIStatusValue = "Tests Passing" | "Tests Failing";
+export type MergeConflictsValue = "Merge Conflicts" | "No Merge Conflicts";
+export type ApprovalStatusValue = "Changes Requested" | "Maintainer Approved";
 
 export interface FieldSpec {
     name: string;
     dataType: FieldDataType;
-    options?: FieldOptionSpec[];
+    options?: string[];
 }
 
 export const REQUIRED_FIELDS: FieldSpec[] = [
@@ -15,11 +18,11 @@ export const REQUIRED_FIELDS: FieldSpec[] = [
         name: "Author Kind",
         dataType: "SINGLE_SELECT",
         options: [
-            { name: "Bot" },
-            { name: "Maintainer" },
-            { name: "First Time Contributor" },
-            { name: "Early Contributor" },
-            { name: "Seasoned Contributor" }
+            "Bot",
+            "Maintainer", 
+            "First Time Contributor",
+            "Early Contributor",
+            "Seasoned Contributor"
         ]
     },
     {
@@ -34,33 +37,33 @@ export const REQUIRED_FIELDS: FieldSpec[] = [
         name: "Maintainer Engagement",
         dataType: "SINGLE_SELECT",
         options: [
-            { name: "No Maintainer Engagement" },
-            { name: "Single Maintainer Engagement" },
-            { name: "Multiple Maintainer Engagement" }
+            "No Maintainer Engagement",
+            "Single Maintainer Engagement",
+            "Multiple Maintainer Engagement"
         ]
     },
     {
         name: "CI Status",
         dataType: "SINGLE_SELECT",
         options: [
-            { name: "Tests Passing" },
-            { name: "Tests Failing" }
+            "Tests Passing",
+            "Tests Failing"
         ]
     },
     {
         name: "Merge Conflicts",
         dataType: "SINGLE_SELECT",
         options: [
-            { name: "Merge Conflicts" },
-            { name: "No Merge Conflicts" }
+            "Merge Conflicts",
+            "No Merge Conflicts"
         ]
     },
     {
         name: "Approval Status",
         dataType: "SINGLE_SELECT",
         options: [
-            { name: "Changes Requested" },
-            { name: "Maintainer Approved" }
+            "Changes Requested",
+            "Maintainer Approved"
         ]
     }
 ];

@@ -185,7 +185,7 @@ export class Project {
         };
 
         if (fieldSpec.dataType === "SINGLE_SELECT" && fieldSpec.options) {
-            variables.singleSelectOptions = fieldSpec.options.map(opt => ({ name: opt.name }));
+            variables.singleSelectOptions = fieldSpec.options.map(opt => ({ name: opt }));
             mutation = `
                 mutation ($projectId: ID!, $name: String!, $dataType: ProjectV2CustomFieldType!, $singleSelectOptions: [ProjectV2SingleSelectFieldOptionInput!]!) {
                     createProjectV2Field(input: {
