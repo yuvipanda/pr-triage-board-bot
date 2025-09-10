@@ -25,10 +25,14 @@ type ExtractFieldValueType<T extends FieldConfig> = T extends { dataType: "SINGL
   ? string
   : never;
 
-export interface FieldSpec<T extends FieldConfig = FieldConfig> {
+export type FieldSpec<T extends FieldConfig = FieldConfig> = {
     dataType: T['dataType'];
-    options?: T['options'];
     getValue: (octokit: PaginatedOctokit, pr: any) => Promise<ExtractFieldValueType<T>>;
+} & (T extends { options: any } ? { options: T['options'] } : { options?: undefined })
+
+// Mapped type to ensure REQUIRED_FIELDS matches FIELD_CONFIGS structure
+type RequiredFieldsType = {
+    [K in keyof typeof FIELD_CONFIGS]: FieldSpec<typeof FIELD_CONFIGS[K]>
 }
 
 // Define field type configurations first
@@ -81,42 +85,33 @@ export const FIELD_CONFIGS = {
 } as const satisfies Record<string, FieldConfig>;
 
 // Now add the getValue functions with proper typing
-export const REQUIRED_FIELDS = {
+export const REQUIRED_FIELDS: RequiredFieldsType = {
     "Author Kind": {
         ...FIELD_CONFIGS["Author Kind"],
         getValue: getAuthorKind
-    } satisfies FieldSpec<typeof FIELD_CONFIGS["Author Kind"]>,
+    },
     "Opened At": {
         ...FIELD_CONFIGS["Opened At"],
         getValue: getOpenedAt
-    } satisfies FieldSpec<typeof FIELD_CONFIGS["Opened At"]>,
+    },
     "Total Lines Changed": {
         ...FIELD_CONFIGS["Total Lines Changed"],
         getValue: getTotalLinesChanged
-    } satisfies FieldSpec<typeof FIELD_CONFIGS["Total Lines Changed"]>,
+    },
     "Maintainer Engagement": {
         ...FIELD_CONFIGS["Maintainer Engagement"],
         getValue: getMaintainerEngagement
-    } satisfies FieldSpec<typeof FIELD_CONFIGS["Maintainer Engagement"]>,
+    },
     "CI Status": {
         ...FIELD_CONFIGS["CI Status"],
         getValue: getCIStatus
-    } satisfies FieldSpec<typeof FIELD_CONFIGS["CI Status"]>,
+    },
     "Merge Conflicts": {
         ...FIELD_CONFIGS["Merge Conflicts"],
         getValue: getMergeConflicts
-    } satisfies FieldSpec<typeof FIELD_CONFIGS["Merge Conflicts"]>,
+    },
     "Approval Status": {
         ...FIELD_CONFIGS["Approval Status"],
         getValue: getApprovalStatus
-    } satisfies FieldSpec<typeof FIELD_CONFIGS["Approval Status"]>
-} as const;
-
-// Generate types from the field configurations using keys
-export type AuthorKindValue = ExtractFieldValueType<typeof FIELD_CONFIGS["Author Kind"]>;
-export type OpenedAtValue = ExtractFieldValueType<typeof FIELD_CONFIGS["Opened At"]>;
-export type TotalLinesChangedValue = ExtractFieldValueType<typeof FIELD_CONFIGS["Total Lines Changed"]>;
-export type MaintainerEngagementValue = ExtractFieldValueType<typeof FIELD_CONFIGS["Maintainer Engagement"]>;
-export type CIStatusValue = ExtractFieldValueType<typeof FIELD_CONFIGS["CI Status"]>;
-export type MergeConflictsValue = ExtractFieldValueType<typeof FIELD_CONFIGS["Merge Conflicts"]>;
-export type ApprovalStatusValue = ExtractFieldValueType<typeof FIELD_CONFIGS["Approval Status"]>;
+    }
+};

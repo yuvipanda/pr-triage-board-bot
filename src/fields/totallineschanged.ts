@@ -1,6 +1,6 @@
 import { PaginatedOctokit } from "../utils.js";
-import { TotalLinesChangedValue } from "../fieldconfig.js";
+import type { REQUIRED_FIELDS } from "../fieldconfig.js";
 
-export async function getTotalLinesChanged(octokit: PaginatedOctokit, pr: any): Promise<TotalLinesChangedValue> {
+export const getTotalLinesChanged: typeof REQUIRED_FIELDS["Total Lines Changed"]["getValue"] = async (octokit: PaginatedOctokit, pr: any) => {
     return pr.additions + pr.deletions;
 }

@@ -1,7 +1,7 @@
 import { PaginatedOctokit } from "../utils.js";
-import { MergeConflictsValue } from "../fieldconfig.js";
+import type { REQUIRED_FIELDS } from "../fieldconfig.js";
 
-export const getMergeConflicts = async (octokit: PaginatedOctokit, pr: any) : Promise<MergeConflictsValue | null> => {
+export const getMergeConflicts: typeof REQUIRED_FIELDS["Merge Conflicts"]["getValue"] = async (octokit: PaginatedOctokit, pr: any) => {
     switch(pr.mergeable) {
         case "CONFLICTING":
             return "Merge Conflicts"

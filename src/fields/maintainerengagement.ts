@@ -1,7 +1,7 @@
 import { getCollaborators, PaginatedOctokit } from "../utils.js";
-import { MaintainerEngagementValue } from "../fieldconfig.js";
+import type { REQUIRED_FIELDS } from "../fieldconfig.js";
 
-export const getMaintainerEngagement = async (octokit: PaginatedOctokit, pr: any): Promise<MaintainerEngagementValue> => {
+export const getMaintainerEngagement: typeof REQUIRED_FIELDS["Maintainer Engagement"]["getValue"] = async (octokit: PaginatedOctokit, pr: any) => {
     const collaborators = new Set(await getCollaborators(octokit, pr.repository.owner.login, pr.repository.name));
 
     collaborators.delete(pr.author.login);
