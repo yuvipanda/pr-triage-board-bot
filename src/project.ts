@@ -258,11 +258,7 @@ export class Project {
         for (const [fieldName, fieldSpec] of Object.entries(REQUIRED_FIELDS)) {
             if (!existingFieldNames.has(fieldName)) {
                 console.log(`Missing field detected: ${fieldName}`);
-                try {
-                    await this.createField(fieldName, fieldSpec);
-                } catch (error) {
-                    console.warn(`Could not create field ${fieldName}, continuing...`);
-                }
+                await this.createField(fieldName, fieldSpec);
             } else {
                 console.log(`Field already exists: ${fieldName}`);
             }
@@ -270,4 +266,3 @@ export class Project {
     }
 
 }
-
