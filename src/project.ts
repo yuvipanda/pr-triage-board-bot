@@ -2,7 +2,7 @@ import { Octokit } from "@octokit/core";
 import { paginateGraphQLInterface } from "@octokit/plugin-paginate-graphql";
 import { getGraphql } from "./utils.js";
 import memoize from "memoize";
-import { FieldSpec, FieldDataType, REQUIRED_FIELDS } from "./fieldconfig.js";
+import { FieldSpec, FieldConfig, FieldDataType, REQUIRED_FIELDS } from "./fieldconfig.js";
 
 export interface Field {
     id: string
@@ -176,7 +176,7 @@ export class Project {
         return resp.deleteProjectV2Item.deletedItemId;
     }
 
-    createField = async (fieldName: string, fieldSpec: FieldSpec): Promise<Field> => {
+    createField = async (fieldName: string, fieldSpec: FieldConfig): Promise<Field> => {
         let mutation = '';
         let variables: any = {
             projectId: this.id,
