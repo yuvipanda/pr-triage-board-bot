@@ -14,27 +14,6 @@ export interface FieldConfig {
     options?: readonly string[];
 }
 
-// Helper type to extract the correct return type from field config
-type ExtractFieldValueType<T extends FieldConfig> = T extends { dataType: "SINGLE_SELECT" }
-  ? T extends { options: readonly (infer U)[] } ? U : never
-  : T extends { dataType: "DATE" }
-  ? Date
-  : T extends { dataType: "NUMBER" }
-  ? number
-  : T extends { dataType: "TEXT" }
-  ? string
-  : never;
-
-export type FieldSpec<T extends FieldConfig = FieldConfig> = {
-    dataType: T['dataType'];
-    getValue: (octokit: PaginatedOctokit, pr: any) => Promise<ExtractFieldValueType<T>>;
-} & (T extends { options: any } ? { options: T['options'] } : { options?: undefined })
-
-// Mapped type to ensure REQUIRED_FIELDS matches FIELD_CONFIGS structure
-type RequiredFieldsType = {
-    [K in keyof typeof FIELD_CONFIGS]: FieldSpec<typeof FIELD_CONFIGS[K]>
-}
-
 // Define field type configurations first
 export const FIELD_CONFIGS = {
     "Author Kind": {
@@ -83,6 +62,28 @@ export const FIELD_CONFIGS = {
         ]
     }
 } as const satisfies Record<string, FieldConfig>;
+
+
+// Helper type to extract the correct return type from field config
+type ExtractFieldValueType<T extends FieldConfig> = T extends { dataType: "SINGLE_SELECT" }
+  ? T extends { options: readonly (infer U)[] } ? U : never
+  : T extends { dataType: "DATE" }
+  ? Date
+  : T extends { dataType: "NUMBER" }
+  ? number
+  : T extends { dataType: "TEXT" }
+  ? string
+  : never;
+
+export type FieldSpec<T extends FieldConfig = FieldConfig> = {
+    dataType: T['dataType'];
+    getValue: (octokit: PaginatedOctokit, pr: any) => Promise<ExtractFieldValueType<T>>;
+} & (T extends { options: any } ? { options: T['options'] } : { options?: undefined })
+
+// Mapped type to ensure REQUIRED_FIELDS matches FIELD_CONFIGS structure
+type RequiredFieldsType = {
+    [K in keyof typeof FIELD_CONFIGS]: FieldSpec<typeof FIELD_CONFIGS[K]>
+}
 
 // Now add the getValue functions with proper typing
 export const REQUIRED_FIELDS: RequiredFieldsType = {
