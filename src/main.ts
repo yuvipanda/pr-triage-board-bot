@@ -3,14 +3,7 @@ import { createAppAuth } from "@octokit/auth-app";
 import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 import { Project } from "./project.js";
 import { getGraphql, PaginatedOctokit } from "./utils.js";
-import { getAuthorKind } from './fields/authorkind.js';
-import { getOpenedAt } from './fields/openedat.js';
-import { getTotalLinesChanged } from './fields/totallineschanged.js';
-import { getMaintainerEngagement } from './fields/maintainerengagement.js';
-import { getCIStatus } from './fields/cistatus.js';
-import { getMergeConflicts } from './fields/mergeconflicts.js'
-import { getApprovalStatus } from './fields/approvalstatus.js';
-import { getFilesChangedType } from './fields/fileschangedtype.js';
+import { REQUIRED_FIELDS } from "./fieldconfig.js";
 import { program } from "commander";
 import fs from "node:fs";
 
@@ -43,15 +36,6 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
     await project.verifyAndCreateFields();
     console.log("Field verification complete.");
 
-    const fields: { [fieldName: string]: (octokit: PaginatedOctokit, pr: any) => Promise<string | Date | number | null> } = {
-        "Author Kind": getAuthorKind,
-        "Opened At": getOpenedAt,
-        "Total Lines Changed": getTotalLinesChanged,
-        "Maintainer Engagement": getMaintainerEngagement,
-        "CI Status": getCIStatus,
-        "Merge Conflicts": getMergeConflicts,
-        "Approval Status": getApprovalStatus
-    }
 
     // Get current PRs from query and existing items from project
     const openPRs = await getOpenPRs(octokit, organization);
@@ -88,8 +72,8 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
     for (const pr of openPRs) {
         count += 1;
         const itemId = await project.addContent(pr.id);
-        for (const [fieldName, calcFunction] of Object.entries(fields)) {
-            const value = await calcFunction(octokit, pr);
+        for (const [fieldName, fieldConfig] of Object.entries(REQUIRED_FIELDS)) {
+            const value = await fieldConfig.getValue(octokit, pr);
             console.log(`[${count} / ${openPRs.length}] Setting ${fieldName} to ${value} for ${pr.url}`);
             await project.setItemValue(
                 itemId, fieldName, value
