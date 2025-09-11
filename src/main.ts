@@ -8,11 +8,20 @@ import { program } from "commander";
 import fs from "node:fs";
 
 
-async function getOpenPRs(octokit: PaginatedOctokit, organization: string) {
+async function getOpenPRs(octokit: PaginatedOctokit, organization: string, repositories?: string[]) {
     const query = getGraphql("openprs.gql")
-    const searchQuery = `org:${organization} is:pr state:open archived:false`
+    let searchQuery: string;
+    
+    if (repositories && repositories.length > 0) {
+        // If specific repositories are provided, query only those
+        const repoQueries = repositories.map(repo => `repo:${organization}/${repo}`).join(' ');
+        searchQuery = `${repoQueries} is:pr state:open archived:false`;
+    } else {
+        // Default behavior: query all repositories in the organization
+        searchQuery = `org:${organization} is:pr state:open archived:false`;
+    }
+    
     const resp = await octokit.graphql.paginate(query, {searchQuery})
-    // const resp = await octokit.graphql(query, {})
     return resp.search.nodes;
 }
 
@@ -28,7 +37,7 @@ function makeOctokit(appId: number, installationId: number, keyPath: string) {
     });
 }
 
-async function main(organization: string, projectNumber: number, octokit: PaginatedOctokit) {
+async function main(organization: string, projectNumber: number, octokit: PaginatedOctokit, repositories?: string[]) {
     const project = await Project.getProject(organization, projectNumber, octokit);
 
     // Verify and create missing fields
@@ -38,7 +47,7 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
 
 
     // Get current PRs from query and existing items from project
-    const openPRs = await getOpenPRs(octokit, organization);
+    const openPRs = await getOpenPRs(octokit, organization, repositories);
     const existingItems = await project.getExistingItems();
 
     // Create sets for efficient lookup
@@ -87,15 +96,17 @@ program
     .option("--gh-app-id <number>", "GitHub App ID to use for authentication", parseInt)
     .option("--gh-installation-id <number>", "GitHub App Installation ID to use for authentication", parseInt)
     .option("--gh-app-pem-file <string>", "Path to .pem file containing private key to use for authentication")
+    .option("--repositories <repos>", "Comma-separated list of repository names to limit querying to (e.g., 'repo1,repo2')")
     .argument("<organization>")
     .argument("<projectNumber>")
     .action(async (organization, projectNumber) => {
         const options = program.opts();
+        const repositories = options.repositories ? options.repositories.split(',').map((repo: string) => repo.trim()) : undefined;
         await main(organization, parseInt(projectNumber), makeOctokit(
             options.ghAppId,
             options.ghInstallationId,
             options.ghAppPemFile
-        ))
+        ), repositories)
     });
 
 program.parse();
