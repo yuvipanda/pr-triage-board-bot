@@ -1,39 +1,30 @@
+---
 name: Run Bot
 
 on:
   schedule:
-    - cron: '13 * * * *' # Every hour
-  workflow_dispatch: # Allows triggering the workflow manually from the GitHub UI
+    - cron: '13 * * * *'  # Every hour
+  workflow_dispatch: true  # Allows triggering manually from the UI
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  build:
+  jupyterhub:
+    uses: ./.github/workflows/reusable-pr-triage.yml
+    with:
+      organization: 'jupyterhub'
+      project-number: '4'
+      gh-app-id: '1793875'
+      gh-installation-id: '81302562'
+    secrets:
+      gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup nodejs
-      uses: actions/setup-node@v4
-      with:
-        cache: 'npm'
-        node-version: 23.x
-    - run: npm ci
-    - run: npm run build
-    - name: JupyterHub Setup GitHub App Private Key
-      run: |
-        echo "${GH_APP_PRIVATE_KEY}" > private-key.pem
-      env:
-        GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
-    - name: JupyterHub run bot
-      run: |
-        node dist/src/main.js --gh-app-id 1793875 --gh-installation-id 81302562 --gh-app-pem-file private-key.pem jupyterhub 4
-    - name: JupyterLab Setup GitHub App Private Key
-      run: |
-        echo "${GH_APP_PRIVATE_KEY}" > private-key.pem
-      env:
-        GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY_JUPYTERLAB }}
-    - name: JupyterLab run bot
-      run: |
-        node dist/src/main.js --gh-app-id 1842581 --gh-installation-id 82755492 --gh-app-pem-file private-key.pem jupyterlab 11
+  jupyterlab:
+    uses: ./.github/workflows/reusable-pr-triage.yml
+    with:
+      organization: 'jupyterlab'
+      project-number: '11'
+      gh-app-id: '1842581'
+      gh-installation-id: '82755492'
+    secrets:
+      gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY_JUPYTERLAB }}
