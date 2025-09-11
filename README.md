@@ -55,6 +55,7 @@ node dist/src/main.js \
   --gh-app-id <github-app-id> \
   --gh-installation-id <github-installation-id> \
   --gh-app-pem-file <path-to-private-key> \
+  [--repositories <repo1,repo2,repo3>] \
   <github-org-name> <github-project-id>
 ```
 
@@ -62,8 +63,9 @@ where:
 1. `<github-app-id>` is the numerical app id for the app you created
 2. `<github-installation-id>` is the installation id after you installed the app in your organization
 3. `<path-to-private-key>` is the path to the private key you downloaded for your github app
-4. `<github-org-name>` is the name of your github org
-5. `<github-project-id>` is the numerical id of the project you copied
+4. `<repo1,repo2,repo3>` (optional) is a comma-separated list of repository names to limit querying to specific repositories instead of all repositories in the organization
+5. `<github-org-name>` is the name of your github org
+6. `<github-project-id>` is the numerical id of the project you copied
 
 This should run for a bit and get you your project output!
 
