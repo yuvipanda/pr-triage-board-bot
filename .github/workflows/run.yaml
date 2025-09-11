@@ -4,7 +4,7 @@ name: Run Bot
 on:
   schedule:
     - cron: '13 * * * *'  # Every hour
-  workflow_dispatch: true  # Allows triggering manually from the UI
+  workflow_dispatch:  # Allows triggering manually from the UI
   push:
     branches: ["main"]
 
