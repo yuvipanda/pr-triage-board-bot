@@ -34,9 +34,6 @@ on:
         description: 'GitHub App private key (PEM format) for authentication'
         required: true
 
-permissions:
-  contents: read
-  projects: write
 
 jobs:
   pr-triage:
