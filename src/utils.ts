@@ -15,9 +15,9 @@ export const getCollaborators = memoize(async (octokit: PaginatedOctokit, owner:
     const query = getGraphql("maintainers.gql");
     const resp2 = await octokit.graphql.paginate(query, { owner: owner, repo: repo });
     const allowedPermissions = ['TRIAGE', 'WRITE', 'MAINTAIN', 'ADMIN'];
-    return resp2.repository.collaborators.nodes
-        .filter((i: any) => allowedPermissions.includes(i.permission))
-        .map((i: any) => i.login);
+    return resp2.repository.collaborators.edges
+        .filter((edge: any) => allowedPermissions.includes(edge.permission))
+        .map((edge: any) => edge.node.login);
 }, {
     // By default, all JS memoize functions only memoize on the first arg wtf?
     cacheKey: args => JSON.stringify(args)

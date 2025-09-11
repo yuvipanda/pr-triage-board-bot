@@ -1,9 +1,11 @@
 query ($cursor: String $owner: String! $repo: String!) {
     repository(name:$repo owner:$owner) {
         collaborators(after:$cursor first:100 affiliation:DIRECT) {
-            nodes {
-                login
+            edges {
                 permission
+                node {
+                    login
+                }
             }
             pageInfo {
                 hasNextPage
