@@ -69,5 +69,51 @@ where:
 
 This should run for a bit and get you your project output!
 
-This is also temporary - eventually the goal is that this project publishes
-a github action that you can use in a cron to maintain this.
+## Using as a GitHub Action
+
+This repository now provides a reusable GitHub Action that can be used in other organizations. Add the following to your workflow:
+
+```yaml
+name: PR Triage Bot
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Run every hour
+  workflow_dispatch: true
+
+jobs:
+  pr-triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run PR Triage Bot
+        uses: yuvipanda/pr-triage-board-bot@main
+        with:
+          organization: 'your-org-name'
+          project-number: '1'
+          gh-app-id: '12345'
+          gh-installation-id: '67890'
+          gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          repositories: 'repo1,repo2'  # Optional: limit to specific repos
+```
+
+### Action Inputs
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `organization` | GitHub organization name | Yes | |
+| `project-number` | GitHub Project board number | Yes | |
+| `gh-app-id` | GitHub App ID for authentication | Yes | |
+| `gh-installation-id` | GitHub App Installation ID | Yes | |
+| `gh-app-private-key` | GitHub App private key (PEM format) | Yes | |
+| `repositories` | Comma-separated list of repository names to limit querying to (optional) | No | |
+| `node-version` | Node.js version to use | No | `23.x` |
+
+### Required Secrets
+
+You'll need to add the following secrets to your repository:
+- `GH_APP_PRIVATE_KEY`: The private key for your GitHub App (PEM format)
+
+### Setting up the GitHub App
+
+Follow the same GitHub App setup process described above in the "Create a GitHub App for authentication" section.
