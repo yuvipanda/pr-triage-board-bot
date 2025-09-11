@@ -3,6 +3,11 @@
 Populate useful fields on a GitHub project board so maintainers
 can triage open PRs better.
 
+Some example project boards that result from this bot are:
+* [JupyterHub](https://github.com/orgs/jupyterhub/projects/4)
+* [JupyterLab](https://github.com/orgs/jupyterlab/projects/11)
+
+
 ## What is this?
 
 To be filled out, but see these two yet to be published blog posts
@@ -11,7 +16,7 @@ from 2i2c for context:
 1. https://github.com/2i2c-org/2i2c-org.github.io/pull/415
 2. https://github.com/2i2c-org/2i2c-org.github.io/pull/412
 
-## Running this locally
+## Set up
 
 ### Create a GitHub App for authentication
 
@@ -35,18 +40,15 @@ from 2i2c for context:
 ### Create the Project Board
 
 This process is currently manual and finnicky, but is documented here so
-that we don't let the perfect be the enemy of the good. The code depends
-on particular Project Fields being set up for the project with particular
-field options, and this should be managed by the code itself. It doesn't
-yet.
+that we don't let the perfect be the enemy of the good.
 
 So for now, go to the [JupyterHub project board](https://github.com/orgs/jupyterhub/projects/4/views/9) and ["Make a copy"](https://docs.github.com/en/issues/planning-and-tracking-with-projects/creating-projects/copying-an-existing-project) in your organization.
 
 Note the project id in the url of your copy, which will look something like: `https://github.com/orgs/<organization>/projects/<project-id>/views/1`
 
-## Run the script
+## Run as a local script
 
-Once this is done, you can run the script manually with:
+Once the setup is done, you can run the script manually with:
 
 ```bash
 npm install
@@ -69,9 +71,9 @@ where:
 
 This should run for a bit and get you your project output!
 
-## Using as a Reusable Workflow
+## Run as a GitHub Workflow
 
-This repository provides a reusable workflow that can be used in other organizations. Add the following to your workflow:
+You can also run this bot using [GitHub workflows](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflows). Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run:
 
 ```yaml
 name: PR Triage Bot
@@ -110,13 +112,3 @@ jobs:
 | Secret | Description | Required |
 |--------|-------------|----------|
 | `gh-app-private-key` | GitHub App private key (PEM format) for authentication | Yes |
-
-### Permissions
-
-The reusable workflow automatically sets the required permissions:
-- `contents: read` - To checkout the repository
-- `projects: write` - To manage the GitHub Project board
-
-### Setting up the GitHub App
-
-Follow the same GitHub App setup process described above in the "Create a GitHub App for authentication" section.
