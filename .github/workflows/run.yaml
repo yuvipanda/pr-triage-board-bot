@@ -19,7 +19,7 @@ jobs:
       with:
         cache: 'npm'
         node-version: 23.x
-    - run: npm install
+    - run: npm ci
     - run: npm run build
     - name: JupyterHub Setup GitHub App Private Key
       run: |
