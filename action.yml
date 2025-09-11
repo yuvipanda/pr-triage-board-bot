@@ -75,4 +75,4 @@ runs:
     - name: Cleanup private key
       run: rm -f private-key.pem
       shell: bash
-      if: always()
+      if: ${{ always() }}
