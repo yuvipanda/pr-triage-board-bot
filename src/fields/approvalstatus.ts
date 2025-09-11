@@ -1,6 +1,7 @@
 import { PaginatedOctokit } from "../utils.js";
+import type { REQUIRED_FIELDS } from "../fieldconfig.js";
 
-export const getApprovalStatus = async (octokit: PaginatedOctokit, pr: any) : Promise<string | null> => {
+export const getApprovalStatus: typeof REQUIRED_FIELDS["Approval Status"]["getValue"] = async (octokit: PaginatedOctokit, pr: any) => {
     const maintainerReviews : Array<string> = [];
     if (pr.reviews.nodes) {
         for (const review of pr.reviews.nodes) {

@@ -20,7 +20,8 @@
   "scripts": {
     "start": "swc src/ --copy-files --delete-dir-on-start -d dist && node dist/src/main.js",
     "build": "swc src/ --copy-files --delete-dir-on-start -d dist",
-    "build:watch": "swc src/ --copy-files --delete-dir-on-start -d dist --watch"
+    "build:watch": "swc src/ --copy-files --delete-dir-on-start -d dist --watch",
+    "typecheck": "tsc --noEmit"
   },
   "engines": {
     "node": ">23.0.0"

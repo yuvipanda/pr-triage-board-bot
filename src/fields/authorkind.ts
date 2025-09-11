@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/core";
 import { PaginatedOctokit, getCollaborators } from "../utils.js";
-
+import type { REQUIRED_FIELDS } from "../fieldconfig.js";
 import memoize from "memoize";
 
 
@@ -20,7 +20,7 @@ const getMergedPRCount = memoize(async (octokit: Octokit, organization: string, 
     cacheKey: args => JSON.stringify(args)
 });
 
-export const getAuthorKind = async (octokit: PaginatedOctokit, pr: any) => {
+export const getAuthorKind: typeof REQUIRED_FIELDS["Author Kind"]["getValue"] = async (octokit: PaginatedOctokit, pr: any) => {
     const BOTS = ["dependabot", "pre-commit-ci", "jupyterhub-bot"]
     if (BOTS.includes(pr.author.login)) {
         return "Bot";
