@@ -110,7 +110,7 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
             const currentValue = existingItem?.fieldValues.get(fieldName);
             
             // Compare values - handle different types appropriately
-            if ((newValue instanceof Date) ? currentValue.getTime?.() === newValue.getTime?.() : currentValue === newValue) {
+            if ((newValue instanceof Date && currentValue instanceof Date) ? currentValue.getTime() === newValue.getTime() : currentValue === newValue) {
                 skippedCount++;
             } else {
                 console.log(`[${count} / ${openPRs.length}] Setting ${fieldName} to ${newValue} for ${pr.url}`);
