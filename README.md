@@ -30,12 +30,12 @@ from 2i2c for context:
 
    c. Restrict the app to being installable just in your organization.
 
-3. After creating the app, you are on the app settings page:
+2. After creating the app, you are on the app settings page:
    1. Create a private key and save this file.
    2. Note the "App ID". We will be using this to authenticate.
    3. Install the app in your organization (having access to all repos) using the `Install App` sidebar item.
 
-4. Find the numerical app installation id for your organization. You can find
+3. Find the numerical app installation id for your organization. You can find
    this by looking at the last number in the URL for the installation settings - it would look
    like `https://github.com/organizations/<organization>/settings/installations/<gh-installation-id>`
 
