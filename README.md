@@ -23,17 +23,19 @@ from 2i2c for context:
 1. [Create a GitHub App in your organization](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) (not in your user) in `Settings > Developer > GitHub Apps` with the following details:
 
    a. Permissions:
-      i. "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)
-      ii. "Organization Permissions" -> "Projects" -> "Read and write" (to manage the GitHub project)
-   b. Disable webhooks as we will not be using them.
-   c. Restricted to being installable just in your organization.
+    - i. "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)  
+    - ii. "Organization Permissions" -> "Projects" -> "Read and write" (to manage the GitHub project)
 
-2. After creating the app, you are on the app settings page:
+   b. Disable webhooks as we will not be using them.
+
+   c. Restrict the app to being installable just in your organization.
+
+3. After creating the app, you are on the app settings page:
    1. Create a private key and save this file.
    2. Note the "App ID". We will be using this to authenticate.
    3. Install the app in your organization (having access to all repos) using the `Install App` sidebar item.
 
-3. Find the numerical app installation id for your organization. You can find
+4. Find the numerical app installation id for your organization. You can find
    this by looking at the last number in the URL for the installation settings - it would look
    like `https://github.com/organizations/<organization>/settings/installations/<gh-installation-id>`
 
