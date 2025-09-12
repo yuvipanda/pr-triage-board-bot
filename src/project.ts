@@ -161,7 +161,8 @@ export class Project {
             organization: this.organization, 
             number: this.number 
         });
-        return resp.organization.projectV2.items.nodes;
+        // Filter to only items with content (PullRequests)
+        return resp.organization.projectV2.items.nodes.filter((item: any) => item.content);
     }
 
     deleteItem = async (itemId: string) => {

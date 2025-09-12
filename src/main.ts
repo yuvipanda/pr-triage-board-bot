@@ -47,19 +47,35 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
 
 
     // Get current PRs from query and existing items from project
+    console.log("Fetching open PRs...");
     const openPRs = await getOpenPRs(octokit, organization, repositories);
+    console.log("Fetching existing project items...");
     const existingItems = await project.getExistingItems();
+    console.log(`Found ${openPRs.length} open PRs and ${existingItems.length} existing project items.`);
+    console.log('Syncing project fields...');
 
-    // Create sets for efficient lookup
+    // Create maps for efficient lookup
     const currentPRIds = new Set(openPRs.map((pr: any) => pr.id));
     const itemsToDelete: {id: string, url: string}[] = [];
+    const existingItemsByPRId = new Map();
 
-    // Find items that are no longer in the current PR query
+    // Build map of existing items by PR ID and find items to delete
     for (const item of existingItems) {
-        if (item.content && item.content.id && !currentPRIds.has(item.content.id)) {
+        if (currentPRIds.has(item.content.id)) {
+            // Convert field values to a map for easy lookup
+            const currentFieldValues = new Map();
+            for (const fieldValue of (item.fieldValues?.nodes ?? []).filter(node => node.field?.name)) {
+                const value = fieldValue.text ?? fieldValue.number ?? (fieldValue.date ? new Date(fieldValue.date) : undefined) ?? fieldValue.name;
+                currentFieldValues.set(fieldValue.field.name, value);
+            }
+            existingItemsByPRId.set(item.content.id, {
+                itemId: item.id,
+                fieldValues: currentFieldValues
+            });
+        } else {
             itemsToDelete.push({
                 id: item.id,
-                url: item.content.url || 'Unknown URL'
+                url: item.content.url
             });
         }
     }
@@ -75,20 +91,36 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
     }
 
     let count = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
 
     // Sort PRs by url so our progress logs are easier to follow
     openPRs.sort((a: any, b: any) => a.url.localeCompare(b.url));
     for (const pr of openPRs) {
         count += 1;
-        const itemId = await project.addContent(pr.id);
+        
+        // Get or create the project item
+        const existingItem = existingItemsByPRId.get(pr.id);
+        const itemId = existingItem ? existingItem.itemId : await project.addContent(pr.id);
+        
+        // Process each field, only updating if value has changed
         for (const [fieldName, fieldConfig] of Object.entries(REQUIRED_FIELDS)) {
-            const value = await fieldConfig.getValue(octokit, pr);
-            console.log(`[${count} / ${openPRs.length}] Setting ${fieldName} to ${value} for ${pr.url}`);
-            await project.setItemValue(
-                itemId, fieldName, value
-            )
+            // A null newValue corresponds to undefined (cleared) currentValue
+            const newValue = (await fieldConfig.getValue(octokit, pr)) ?? undefined;
+            const currentValue = existingItem?.fieldValues.get(fieldName);
+            
+            // Compare values - handle different types appropriately
+            if ((newValue instanceof Date) ? currentValue.getTime?.() === newValue.getTime?.() : currentValue === newValue) {
+                skippedCount++;
+            } else {
+                console.log(`[${count} / ${openPRs.length}] Setting ${fieldName} to ${newValue} for ${pr.url}`);
+                await project.setItemValue(itemId, fieldName, newValue);
+                updatedCount++;
+            }
         }
     }
+    
+    console.log(`\nSummary: Updated ${updatedCount} field values, skipped ${skippedCount} unchanged values`);
 }
 
 
