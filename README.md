@@ -23,10 +23,12 @@ from 2i2c for context:
 1. [Create a GitHub App in your organization](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) (not in your user) in `Settings > Developer > GitHub Apps` with the following details:
 
    a. Permissions:
-      i. "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)
-      ii. "Organization Permissions" -> "Projects" -> "Read and write" (to manage the GitHub project)
+    - i. "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)  
+    - ii. "Organization Permissions" -> "Projects" -> "Read and write" (to manage the GitHub project)
+
    b. Disable webhooks as we will not be using them.
-   c. Restricted to being installable just in your organization.
+
+   c. Restrict the app to being installable just in your organization.
 
 2. After creating the app, you are on the app settings page:
    1. Create a private key and save this file.
