@@ -50,17 +50,40 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
     const openPRs = await getOpenPRs(octokit, organization, repositories);
     const existingItems = await project.getExistingItems();
 
-    // Create sets for efficient lookup
+    // Create maps for efficient lookup
     const currentPRIds = new Set(openPRs.map((pr: any) => pr.id));
     const itemsToDelete: {id: string, url: string}[] = [];
+    const existingItemsByPRId = new Map();
 
-    // Find items that are no longer in the current PR query
+    // Build map of existing items by PR ID and find items to delete
     for (const item of existingItems) {
-        if (item.content && item.content.id && !currentPRIds.has(item.content.id)) {
-            itemsToDelete.push({
-                id: item.id,
-                url: item.content.url || 'Unknown URL'
-            });
+        if (item.content && item.content.id) {
+            if (currentPRIds.has(item.content.id)) {
+                // Convert field values to a map for easy lookup
+                const currentFieldValues = new Map();
+                if (item.fieldValues && item.fieldValues.nodes) {
+                    for (const fieldValue of item.fieldValues.nodes) {
+                        if (fieldValue.field && fieldValue.field.name) {
+                            let value;
+                            if ('text' in fieldValue) value = fieldValue.text;
+                            else if ('number' in fieldValue) value = fieldValue.number;
+                            else if ('date' in fieldValue) value = new Date(fieldValue.date);
+                            else if ('name' in fieldValue) value = fieldValue.name;
+                            
+                            currentFieldValues.set(fieldValue.field.name, value);
+                        }
+                    }
+                }
+                existingItemsByPRId.set(item.content.id, {
+                    itemId: item.id,
+                    fieldValues: currentFieldValues
+                });
+            } else {
+                itemsToDelete.push({
+                    id: item.id,
+                    url: item.content.url || 'Unknown URL'
+                });
+            }
         }
     }
 
@@ -75,20 +98,50 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
     }
 
     let count = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
 
     // Sort PRs by url so our progress logs are easier to follow
     openPRs.sort((a: any, b: any) => a.url.localeCompare(b.url));
     for (const pr of openPRs) {
         count += 1;
-        const itemId = await project.addContent(pr.id);
+        
+        // Get or create the project item
+        const existingItem = existingItemsByPRId.get(pr.id);
+        const itemId = existingItem ? existingItem.itemId : await project.addContent(pr.id);
+        
+        // Process each field, only updating if value has changed
         for (const [fieldName, fieldConfig] of Object.entries(REQUIRED_FIELDS)) {
-            const value = await fieldConfig.getValue(octokit, pr);
-            console.log(`[${count} / ${openPRs.length}] Setting ${fieldName} to ${value} for ${pr.url}`);
-            await project.setItemValue(
-                itemId, fieldName, value
-            )
+            const newValue = await fieldConfig.getValue(octokit, pr);
+            const currentValue = existingItem?.fieldValues.get(fieldName);
+            
+            // Compare values - handle different types appropriately
+            let valuesMatch = false;
+            if (currentValue === undefined && newValue === null) {
+                valuesMatch = true;
+            } else if (currentValue !== undefined && newValue !== null) {
+                if (newValue instanceof Date && currentValue instanceof Date) {
+                    // GitHub Project date fields only store date (not time), so compare by day
+                    const currentDay = currentValue.toISOString().split('T')[0];
+                    const newDay = newValue.toISOString().split('T')[0];
+                    valuesMatch = currentDay === newDay;
+                } else {
+                    valuesMatch = String(currentValue) === String(newValue);
+                }
+            }
+            
+            if (!valuesMatch) {
+                console.log(`[${count} / ${openPRs.length}] Setting ${fieldName} to ${newValue} for ${pr.url}`);
+                await project.setItemValue(itemId, fieldName, newValue);
+                updatedCount++;
+            } else {
+                skippedCount++;
+            }
         }
     }
+    
+    console.log(`\nSummary: Updated ${updatedCount} field values, skipped ${skippedCount} unchanged values`);
+    console.log(`Performance improvement: ${Math.round(skippedCount / (updatedCount + skippedCount) * 100)}% of updates avoided`);
 }
 
 

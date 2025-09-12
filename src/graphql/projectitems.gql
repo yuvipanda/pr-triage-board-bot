@@ -11,6 +11,42 @@ query($organization: String! $number: Int! $cursor: String) {
                             url
                         }
                     }
+                    fieldValues(first: 50) {
+                        nodes {
+                            ... on ProjectV2ItemFieldTextValue {
+                                text
+                                field {
+                                    ... on ProjectV2Field {
+                                        name
+                                    }
+                                }
+                            }
+                            ... on ProjectV2ItemFieldNumberValue {
+                                number
+                                field {
+                                    ... on ProjectV2Field {
+                                        name
+                                    }
+                                }
+                            }
+                            ... on ProjectV2ItemFieldDateValue {
+                                date
+                                field {
+                                    ... on ProjectV2Field {
+                                        name
+                                    }
+                                }
+                            }
+                            ... on ProjectV2ItemFieldSingleSelectValue {
+                                name
+                                field {
+                                    ... on ProjectV2SingleSelectField {
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 pageInfo {
                     hasNextPage
