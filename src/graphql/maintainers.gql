@@ -1,6 +1,6 @@
 query ($cursor: String $owner: String! $repo: String!) {
     repository(name:$repo owner:$owner) {
-        collaborators(after:$cursor first:100 affiliation:DIRECT) {
+        collaborators(after:$cursor first:100) {
             edges {
                 permission
                 node {
