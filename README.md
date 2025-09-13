@@ -20,18 +20,20 @@ from 2i2c for context:
 
 ### Create a GitHub App for authentication
 
-1. [Create a GitHub App in your organization](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) (not in your user) in `Settings > Developer > GitHub Apps` with the following details:
+1. [Create a GitHub App in your organization](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) (not in your user) in `Settings > Developer Settings > GitHub Apps` (this is _not_ the `Settings > 3rd Party Access > GitHub Apps` menu item). Leave all settings with their defaults except for:
 
-   a. Permissions:
-    - i. "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)  
-    - ii. "Organization Permissions" -> "Projects" -> "Read and write" (to manage the GitHub project)
+   a. GitHub App Name: choose a globally unique name for this app, such as the `[Name of org] PR Triage Bot`
 
    b. Disable webhooks as we will not be using them.
 
-   c. Restrict the app to being installable just in your organization.
+   c. Permissions:
+    - i. "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)
+    - ii. "Organization Permissions" -> "Projects" -> "Read and write" (to manage the GitHub project)
+
+   d. Where can this GitHub App be installed? Set to `Only on this account`
 
 2. After creating the app, you are on the app settings page:
-   1. Create a private key and save this file.
+   1. Create a private key, which should download it as a file.
    2. Note the "App ID". We will be using this to authenticate.
    3. Install the app in your organization (having access to all repos) using the `Install App` sidebar item.
 
@@ -50,7 +52,7 @@ Note the project id in the url of your copy, which will look something like: `ht
 
 ## Run as a local script
 
-Once the setup is done, you can run the script manually with:
+Clone this repository and do the setup above. You can then run the script manually with:
 
 ```bash
 npm install
@@ -75,27 +77,31 @@ This should run for a bit and get you your project output!
 
 ## Run as a GitHub Workflow
 
-You can also run this bot using [GitHub workflows](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflows). Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run:
+You can also run this bot using [GitHub workflows](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflows). This workflow can be run from any repo in the org. If the workflow is consolidating information from repo, it may make sense to have the workflow part of that repo. If the workflow is consolidating information across the org, you may consider running it in a centralized repo like the `.github` repo.
+
+1. Create an org-level secret using `Org Settings > Secrets and variables > Actions` with the contents of your app private key `.pem` file that was downloaded in the setup.
+
+2. Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run:
 
 ```yaml
-name: PR Triage Bot
+name: 'PR Triage Bot'
 
 on:
   schedule:
     - cron: '0 * * * *'  # Run every hour
-  workflow_dispatch: true
+  workflow_dispatch:
 
 jobs:
   pr-triage:
-    uses: yuvipanda/pr-triage-board-bot/.github/workflows/reusable-pr-triage.yml@main
+    uses: 'yuvipanda/pr-triage-board-bot/.github/workflows/reusable-pr-triage.yml@main'
     with:
       organization: 'your-org-name'
       project-number: '1'
       gh-app-id: '12345'
       gh-installation-id: '67890'
-      repositories: 'repo1,repo2'  # Optional: limit to specific repos
+      repositories: 'repo1,repo2'  # Optional: limit to specific repos. Delete this line to default to all repos in the org
     secrets:
-      gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      gh-app-private-key: '${{ secrets.GH_APP_PRIVATE_KEY }}'
 ```
 
 ### Workflow Inputs
@@ -114,3 +120,4 @@ jobs:
 | Secret | Description | Required |
 |--------|-------------|----------|
 | `gh-app-private-key` | GitHub App private key (PEM format) for authentication | Yes |
+
