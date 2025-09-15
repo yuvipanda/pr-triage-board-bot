@@ -75,13 +75,16 @@ where:
 
 This should run for a bit and get you your project output!
 
-## Run as a GitHub Workflow
+## Using as a GitHub Action
 
-You can also run this bot using [GitHub workflows](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflows). This workflow can be run from any repo in the org. If the workflow is consolidating information from repo, it may make sense to have the workflow part of that repo. If the workflow is consolidating information across the org, you may consider running it in a centralized repo like the `.github` repo.
+This repository now provides a GitHub Action that can be used in other organizations. Add the following to your workflow:
 
-1. Create an org-level secret using `Org Settings > Secrets and variables > Actions` with the contents of your app private key `.pem` file that was downloaded in the setup.
+If the workflow is consolidating information from repo, it may make sense to have the workflow part of that repo. If the workflow is consolidating information across the org, you may consider running it in a centralized repo like the `.github` repo.
+
+1. Create an org-level secret using `Org Settings > Secrets and variables > Actions` with the contents of your app private key `.pem` file that was downloaded in the setup. We call this `GH_APP_PRIVATE_KEY` in our workflow below.
 
 2. Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run:
+
 
 ```yaml
 name: 'PR Triage Bot'
@@ -93,31 +96,32 @@ on:
 
 jobs:
   pr-triage:
-    uses: 'yuvipanda/pr-triage-board-bot/.github/workflows/reusable-pr-triage.yml@main'
-    with:
-      organization: 'your-org-name'
-      project-number: '1'
-      gh-app-id: '12345'
-      gh-installation-id: '67890'
-      repositories: 'repo1,repo2'  # Optional: limit to specific repos. Delete this line to default to all repos in the org
-    secrets:
-      gh-app-private-key: '${{ secrets.GH_APP_PRIVATE_KEY }}'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run PR Triage Bot
+        uses: yuvipanda/pr-triage-board-bot@main
+        with:
+          organization: 'your-org-name'
+          project-number: '1'
+          gh-app-id: '12345'
+          gh-installation-id: '67890'
+          gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          repositories: 'repo1,repo2'  # Optional: limit to specific repos. Delete this line to default to all repos in the org
 ```
 
-### Workflow Inputs
+### Action Inputs
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `organization` | GitHub organization name | Yes | |
 | `project-number` | GitHub Project board number | Yes | |
 | `gh-app-id` | GitHub App ID for authentication | Yes | |
-| `gh-installation-id` | GitHub App Installation ID for authentication | Yes | |
+| `gh-installation-id` | GitHub App Installation ID | Yes | |
+| `gh-app-private-key` | GitHub App private key (PEM format) | Yes | |
 | `repositories` | Comma-separated list of repository names to limit querying to (optional) | No | |
 | `node-version` | Node.js version to use | No | `23.x` |
 
-### Required Secrets
+### Setting up the GitHub App
 
-| Secret | Description | Required |
-|--------|-------------|----------|
-| `gh-app-private-key` | GitHub App private key (PEM format) for authentication | Yes |
-
+Follow the same GitHub App setup process described above in the "Create a GitHub App for authentication" section.
