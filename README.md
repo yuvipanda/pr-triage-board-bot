@@ -81,8 +81,7 @@ This repository now provides a GitHub Action that can be used in workflows. To u
 
 1. Create an org-level secret using `Org Settings > Secrets and variables > Actions` with the contents of your app private key `.pem` file that was downloaded in the setup. We call this secret `GH_APP_PRIVATE_KEY` in our workflow below.
 
-2. Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run. If the workflow is consolidating information from multiple repos, consider having the workflow in a centralized repo like the orgs `.github` repo.
-
+2. Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run. If you are consolidating PR information from multiple repos, consider creating the workflow in a centralized repo like the organization's `.github` repo.
 
 ```yaml
 name: 'PR Triage Bot'
@@ -117,7 +116,7 @@ jobs:
 | `gh-app-id` | GitHub App ID for authentication | Yes | |
 | `gh-app-installation-id` | GitHub App Installation ID | Yes | |
 | `gh-app-private-key` | GitHub App private key (PEM format) | Yes | |
-| `repositories` | Comma-separated list of repository names to limit querying to (optional) | No | |
+| `repositories` | Comma-separated list of repository names to limit querying (optional). If this is not specified, all repositories in the org will be queried. | No | |
 | `node-version` | Node.js version to use | No | `23.x` |
 
 ### Setting up the GitHub App
