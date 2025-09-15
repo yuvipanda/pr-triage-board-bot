@@ -3,7 +3,7 @@ name: 'PR Triage Board Bot'
 description: 'A GitHub Action to manage a GitHub Project board for PR triage'
 author: 'yuvipanda'
 branding:
-  icon: 'git-pull-request'
+  icon: 'list'
   color: 'blue'
 
 inputs:
