@@ -19,7 +19,7 @@ jobs:
           organization: 'jupyterhub'
           project-number: '4'
           gh-app-id: '1793875'
-          gh-installation-id: '81302562'
+          gh-app-installation-id: '81302562'
           gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
   jupyterlab:
@@ -32,5 +32,5 @@ jobs:
           organization: 'jupyterlab'
           project-number: '11'
           gh-app-id: '1842581'
-          gh-installation-id: '82755492'
+          gh-app-installation-id: '82755492'
           gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY_JUPYTERLAB }}
