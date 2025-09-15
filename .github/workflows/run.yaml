@@ -10,21 +10,27 @@ on:
 
 jobs:
   jupyterhub:
-    uses: ./.github/workflows/reusable-pr-triage.yml
-    with:
-      organization: 'jupyterhub'
-      project-number: '4'
-      gh-app-id: '1793875'
-      gh-installation-id: '81302562'
-    secrets:
-      gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run JupyterHub PR Triage Bot
+        uses: ./
+        with:
+          organization: 'jupyterhub'
+          project-number: '4'
+          gh-app-id: '1793875'
+          gh-installation-id: '81302562'
+          gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
   jupyterlab:
-    uses: ./.github/workflows/reusable-pr-triage.yml
-    with:
-      organization: 'jupyterlab'
-      project-number: '11'
-      gh-app-id: '1842581'
-      gh-installation-id: '82755492'
-    secrets:
-      gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY_JUPYTERLAB }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run JupyterLab PR Triage Bot
+        uses: ./
+        with:
+          organization: 'jupyterlab'
+          project-number: '11'
+          gh-app-id: '1842581'
+          gh-installation-id: '82755492'
+          gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY_JUPYTERLAB }}
