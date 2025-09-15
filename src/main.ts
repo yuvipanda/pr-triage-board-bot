@@ -137,7 +137,7 @@ program
         const repositories = options.repositories ? options.repositories.split(',').map((repo: string) => repo.trim()) : undefined;
         await main(organization, parseInt(projectNumber), makeOctokit(
             options.ghAppId,
-            options.ghInstallationId,
+            options.ghAppInstallationId,
             options.ghAppPemFile
         ), repositories)
     });
