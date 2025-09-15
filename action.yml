@@ -16,7 +16,7 @@ inputs:
   gh-app-id:
     description: 'GitHub App ID for authentication'
     required: true
-  gh-installation-id:
+  gh-app-installation-id:
     description: 'GitHub App Installation ID for authentication'
     required: true
   gh-app-private-key:
@@ -59,14 +59,14 @@ runs:
         if [ -n "${{ inputs.repositories }}" ]; then
           node dist/src/main.js \
             --gh-app-id ${{ inputs.gh-app-id }} \
-            --gh-installation-id ${{ inputs.gh-installation-id }} \
+            --gh-app-installation-id ${{ inputs.gh-app-installation-id }} \
             --gh-app-pem-file private-key.pem \
             --repositories "${{ inputs.repositories }}" \
             ${{ inputs.organization }} ${{ inputs.project-number }}
         else
           node dist/src/main.js \
             --gh-app-id ${{ inputs.gh-app-id }} \
-            --gh-installation-id ${{ inputs.gh-installation-id }} \
+            --gh-app-installation-id ${{ inputs.gh-app-installation-id }} \
             --gh-app-pem-file private-key.pem \
             ${{ inputs.organization }} ${{ inputs.project-number }}
         fi

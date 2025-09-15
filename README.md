@@ -39,7 +39,7 @@ from 2i2c for context:
 
 3. Find the numerical app installation id for your organization. You can find
    this by looking at the last number in the URL for the installation settings - it would look
-   like `https://github.com/organizations/<organization>/settings/installations/<gh-installation-id>`
+   like `https://github.com/organizations/<organization>/settings/installations/<gh-app-installation-id>`
 
 ### Create the Project Board
 
@@ -59,7 +59,7 @@ npm install
 npm run build
 node dist/src/main.js \
   --gh-app-id <github-app-id> \
-  --gh-installation-id <github-installation-id> \
+  --gh-app-installation-id <github-installation-id> \
   --gh-app-pem-file <path-to-private-key> \
   [--repositories <repo1,repo2,repo3>] \
   <github-org-name> <github-project-id>
@@ -77,13 +77,11 @@ This should run for a bit and get you your project output!
 
 ## Using as a GitHub Action
 
-This repository now provides a GitHub Action that can be used in other organizations. Add the following to your workflow:
+This repository now provides a GitHub Action that can be used in workflows. To use this action:
 
-If the workflow is consolidating information from repo, it may make sense to have the workflow part of that repo. If the workflow is consolidating information across the org, you may consider running it in a centralized repo like the `.github` repo.
+1. Create an org-level secret using `Org Settings > Secrets and variables > Actions` with the contents of your app private key `.pem` file that was downloaded in the setup. We call this secret `GH_APP_PRIVATE_KEY` in our workflow below.
 
-1. Create an org-level secret using `Org Settings > Secrets and variables > Actions` with the contents of your app private key `.pem` file that was downloaded in the setup. We call this `GH_APP_PRIVATE_KEY` in our workflow below.
-
-2. Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run:
+2. Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run. If the workflow is consolidating information from multiple repos, consider having the workflow in a centralized repo like the orgs `.github` repo.
 
 
 ```yaml
@@ -105,7 +103,7 @@ jobs:
           organization: 'your-org-name'
           project-number: '1'
           gh-app-id: '12345'
-          gh-installation-id: '67890'
+          gh-app-installation-id: '67890'
           gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           repositories: 'repo1,repo2'  # Optional: limit to specific repos. Delete this line to default to all repos in the org
 ```
@@ -117,7 +115,7 @@ jobs:
 | `organization` | GitHub organization name | Yes | |
 | `project-number` | GitHub Project board number | Yes | |
 | `gh-app-id` | GitHub App ID for authentication | Yes | |
-| `gh-installation-id` | GitHub App Installation ID | Yes | |
+| `gh-app-installation-id` | GitHub App Installation ID | Yes | |
 | `gh-app-private-key` | GitHub App private key (PEM format) | Yes | |
 | `repositories` | Comma-separated list of repository names to limit querying to (optional) | No | |
 | `node-version` | Node.js version to use | No | `23.x` |

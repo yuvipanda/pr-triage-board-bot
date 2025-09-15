@@ -127,7 +127,7 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
 
 program
     .option("--gh-app-id <number>", "GitHub App ID to use for authentication", parseInt)
-    .option("--gh-installation-id <number>", "GitHub App Installation ID to use for authentication", parseInt)
+    .option("--gh-app-installation-id <number>", "GitHub App Installation ID to use for authentication", parseInt)
     .option("--gh-app-pem-file <string>", "Path to .pem file containing private key to use for authentication")
     .option("--repositories <repos>", "Comma-separated list of repository names to limit querying to (e.g., 'repo1,repo2')")
     .argument("<organization>")
