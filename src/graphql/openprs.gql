@@ -1,5 +1,5 @@
 query ($cursor: String, $searchQuery: String!) {
- search(type:ISSUE first:50 query:$searchQuery after:$cursor){
+ search(type:ISSUE first:30 query:$searchQuery after:$cursor){
   nodes {
     ... on PullRequest {
       id,
