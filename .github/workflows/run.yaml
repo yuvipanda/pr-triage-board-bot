@@ -12,7 +12,6 @@ jobs:
   jupyterhub:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Run JupyterHub PR Triage Bot
         uses: ./
         with:
@@ -25,7 +24,6 @@ jobs:
   jupyterlab:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Run JupyterLab PR Triage Bot
         uses: ./
         with:
