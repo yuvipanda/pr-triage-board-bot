@@ -95,7 +95,6 @@ jobs:
   pr-triage:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Run PR Triage Bot
         uses: yuvipanda/pr-triage-board-bot@main
         with:
