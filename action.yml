@@ -35,8 +35,11 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: ls
-      run: ls -la ${{ github.action_path }}
+    # See https://github.com/actions/toolkit/issues/1035 for a discussion of why we need
+    # to copy package-lock.json to the WORKSPACE directory for npm caching to work. Basically,
+    # the hashFiles only works on files in the WORKSPACE directory.
+    - name: copy package-lock.json to WORKSPACE directory so the setup-node caching works
+      run: cp ${{ github.action_path }}/package-lock.json pr-triage-bot-package-lock.json
       shell: bash
 
     - name: Setup Node.js
@@ -44,7 +47,7 @@ runs:
       with:
         cache: 'npm'
         node-version: ${{ inputs.node-version }}
-        cache-dependency-path: ${{ github.action_path }}/package-lock.json
+        cache-dependency-path: pr-triage-bot-package-lock.json
 
     - name: Install dependencies
       run: npm ci
