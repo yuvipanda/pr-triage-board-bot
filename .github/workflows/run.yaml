@@ -21,15 +21,3 @@ jobs:
           gh-app-id: '1793875'
           gh-app-installation-id: '81302562'
           gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-
-  jupyterlab:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run JupyterLab PR Triage Bot
-        uses: yuvipanda/pr-triage-board-bot@main
-        with:
-          organization: 'jupyterlab'
-          project-number: '11'
-          gh-app-id: '1842581'
-          gh-app-installation-id: '82755492'
-          gh-app-private-key: ${{ secrets.GH_APP_PRIVATE_KEY_JUPYTERLAB }}
