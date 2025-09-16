@@ -84,7 +84,7 @@ This repository now provides a GitHub Action that can be used in workflows. To u
 2. Create a workflow file like the following to run the bot every hour and to be able to manually trigger a run. If you are consolidating PR information from multiple repos, consider creating the workflow in a centralized repo like the organization's `.github` repo.
 
 ```yaml
-name: 'PR Triage Bot'
+name: 'Update PR Triage Board'
 
 on:
   schedule:
@@ -95,7 +95,7 @@ jobs:
   pr-triage:
     runs-on: ubuntu-latest
     steps:
-      - name: Run PR Triage Bot
+      - name: Update PR Triage Board
         uses: yuvipanda/pr-triage-board-bot@main
         with:
           organization: 'your-org-name'
