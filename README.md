@@ -6,6 +6,7 @@ can triage open PRs better.
 Some example project boards that result from this bot are:
 * [JupyterHub](https://github.com/orgs/jupyterhub/projects/4)
 * [JupyterLab](https://github.com/orgs/jupyterlab/projects/11)
+* [GeoJupyter](https://github.com/orgs/geojupyter/projects/3)
 
 
 ## What is this?
