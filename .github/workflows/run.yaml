@@ -7,13 +7,16 @@ on:
   workflow_dispatch:  # Allows triggering manually from the UI
   push:
     branches: ["main"]
+  pull_request:
+    branches: [ "main" ]
+
 
 jobs:
   jupyterhub:
     runs-on: ubuntu-latest
     steps:
       - name: Run JupyterHub PR Triage Bot
-        uses: yuvipanda/pr-triage-board-bot@main
+        uses: ./
         with:
           organization: 'jupyterhub'
           project-number: '4'
@@ -25,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run JupyterLab PR Triage Bot
-        uses: yuvipanda/pr-triage-board-bot@main
+        uses: ./
         with:
           organization: 'jupyterlab'
           project-number: '11'
