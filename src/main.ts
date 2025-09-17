@@ -37,9 +37,12 @@ function makeOctokit(appId: number, installationId: number, keyPath: string) {
     });
 }
 
-async function main(organization: string, projectNumber: number, octokit: PaginatedOctokit, repositories?: string[]) {
+async function main(organization: string, projectNumber: number, octokit: PaginatedOctokit, repositories?: string[], dryRun = false) {
     const project = await Project.getProject(organization, projectNumber, octokit);
 
+    if (dryRun) {
+        console.log("DRY RUN MODE - No changes will be made.");
+    }
     // Verify and create missing fields
     console.log("Verifying project fields...");
     await project.verifyAndCreateFields();
@@ -87,7 +90,9 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
     for (let i = 0; i < itemsToDelete.length; i++) {
         const item = itemsToDelete[i];
         console.log(`[${i + 1} / ${itemsToDelete.length}] Removing ${item.url}`);
-        await project.deleteItem(item.id);
+        if (!dryRun) {
+            await project.deleteItem(item.id);
+        }
     }
 
     let count = 0;
@@ -101,7 +106,7 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
         
         // Get or create the project item
         const existingItem = existingItemsByPRId.get(pr.id);
-        const itemId = existingItem ? existingItem.itemId : await project.addContent(pr.id);
+        const itemId = existingItem ? existingItem.itemId : (!dryRun && await project.addContent(pr.id));
         
         // Process each field, only updating if value has changed
         for (const [fieldName, fieldConfig] of Object.entries(REQUIRED_FIELDS)) {
@@ -115,7 +120,9 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
                 skippedCount++;
             } else {
                 console.log(`[${count} / ${openPRs.length}] Setting ${fieldName} to ${newValue} for ${pr.url}`);
-                await project.setItemValue(itemId, fieldName, newValue);
+                if (!dryRun) {
+                    await project.setItemValue(itemId, fieldName, newValue);
+                }
                 updatedCount++;
             }
         }
@@ -126,6 +133,7 @@ async function main(organization: string, projectNumber: number, octokit: Pagina
 
 
 program
+    .option("--dry-run", "Do not actually make any changes")
     .option("--gh-app-id <number>", "GitHub App ID to use for authentication", parseInt)
     .option("--gh-app-installation-id <number>", "GitHub App Installation ID to use for authentication", parseInt)
     .option("--gh-app-pem-file <string>", "Path to .pem file containing private key to use for authentication")
@@ -139,7 +147,7 @@ program
             options.ghAppId,
             options.ghAppInstallationId,
             options.ghAppPemFile
-        ), repositories)
+        ), repositories, options.dryRun);
     });
 
 program.parse();
