@@ -76,6 +76,8 @@ where:
 
 This should run for a bit and get you your project output!
 
+Additionally, if you give the `--dry-run` option, no changes will actually be made to the project board. This may be useful when debugging issues with the script.
+
 ## Using as a GitHub Action
 
 This repository now provides a GitHub Action that can be used in workflows. To use this action:
