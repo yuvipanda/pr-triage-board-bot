@@ -7,6 +7,7 @@
     "@octokit/auth-app": "^8.0.2",
     "@octokit/core": "^7.0.3",
     "@octokit/plugin-paginate-graphql": "^6.0.0",
+    "@octokit/plugin-throttling": "^11.0.1",
     "commander": "^14.0.0",
     "memoize": "^10.1.0"
   },
@@ -14,8 +15,8 @@
     "@swc/cli": "^0.7.8",
     "@swc/core": "^1.13.3",
     "@types/node": "^24.2.1",
-    "typescript": "^5.9.2",
-    "chokidar": "^4.0.3"
+    "chokidar": "^4.0.3",
+    "typescript": "^5.9.2"
   },
   "scripts": {
     "start": "swc src/ --copy-files --delete-dir-on-start -d dist && node dist/src/main.js",

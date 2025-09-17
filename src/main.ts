@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/core";
 import { createAppAuth } from "@octokit/auth-app";
 import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
+import { throttling } from "@octokit/plugin-throttling";
 import { Project } from "./project.js";
 import { getGraphql, PaginatedOctokit } from "./utils.js";
 import { REQUIRED_FIELDS } from "./fieldconfig.js";
@@ -26,13 +27,41 @@ async function getOpenPRs(octokit: PaginatedOctokit, organization: string, repos
 }
 
 function makeOctokit(appId: number, installationId: number, keyPath: string) {
-    const PaginatedOctokitConstructor = Octokit.plugin(paginateGraphQL)
+    const PaginatedOctokitConstructor = Octokit.plugin(paginateGraphQL, throttling)
     return new PaginatedOctokitConstructor({
         authStrategy: createAppAuth,
         auth: {
             appId: appId,
             installationId: installationId,
             privateKey: fs.readFileSync(keyPath).toString()
+        },
+        throttle: {
+            onRateLimit: (retryAfter, options, octokit, retryCount) => {
+                octokit.log.warn(
+                    `Request quota exhausted for request ${options.method} ${options.url}`,
+                );
+
+                if (retryCount < 2) {
+                    octokit.log.info(`Retrying after ${retryAfter} seconds. Current retryCount: ${retryCount}`);
+                    return true;
+                }
+            },
+            onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
+                octokit.log.warn(
+                    `SecondaryRateLimit detected for request ${options.method} ${options.url}`,
+                );
+
+                if (retryCount < 2) {
+                    octokit.log.info(`Retrying after ${retryAfter} seconds. Current retryCount: ${retryCount}`);
+                    return true;
+                }
+            },
+        },
+        log: {
+            debug: console.debug,
+            info: console.info,
+            warn: console.warn,
+            error: console.error
         }
     });
 }
