@@ -28,8 +28,9 @@ from 2i2c for context:
    b. Disable webhooks as we will not be using them.
 
    c. Permissions:
-    - i. "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)
-    - ii. "Organization Permissions" -> "Projects" -> "Read and write" (to manage the GitHub project)
+    - "Repository Permissions" -> "Metadata" -> "Read-only" (to get list of collaborators for a repo)
+    - "Organization Permissions" -> "Members" -> "Read-only" (to get members of collaborating teams)
+    - "Organization Permissions" -> "Projects" -> "Read and write" (to manage the GitHub project)
 
    d. Where can this GitHub App be installed? Set to `Only on this account`
 
